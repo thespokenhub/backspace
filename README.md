@@ -1,25 +1,41 @@
-# CODING AGENTS: READ THIS FIRST
+# Backspace
 
-This is a **handoff bundle** from Claude Design (claude.ai/design).
+See any website the way it used to look. Type an address, drag back through the years, and see the page, every URL on the site and every change on any date since 1996.
 
-A user mocked up designs in HTML/CSS/JS using an AI design tool, then exported this bundle so a coding agent can implement the designs for real.
+Built with Vite, React and TypeScript from the Claude Design prototype in `project/Backspace v2.dc.html`. The design conversation is in `chats/`.
 
-## What you should do — IMPORTANT
+## Run it
 
-**Read the chat transcripts first.** There are 1 chat transcript(s) in `chats/`. The transcripts show the full back-and-forth between the user and the design assistant — they tell you **what the user actually wants** and **where they landed** after iterating. Don't skip them. The final HTML files are the output, but the chat is where the intent lives.
+```sh
+npm install
+npm run dev      # local dev server
+npm run build    # type-check and production build into dist/
+```
 
-**Read `project/Backspace v2.dc.html` in full.** The user had this file open when they triggered the handoff, so it's almost certainly the primary design they want built. Read it top to bottom — don't skim. Then **follow its imports**: open every file it pulls in (shared components, CSS, scripts) so you understand how the pieces fit together before you start implementing.
+## What's in it
 
-**If anything is ambiguous, ask the user to confirm before you start implementing.** It's much cheaper to clarify scope up front than to build the wrong thing.
+- **Home**: hero search, three-step explainer, feature cards, use case cards, short Q&A and a closing search box.
+- **Use case pages** for copywriters, SEO specialists, developers and anyone curious, each with a one-click example.
+- **Results workspace** with four tabs:
+  - **Page**: one saved copy with a draggable timeline (tall bars mark changes), ← → / Backspace keys, and "Skip copies where nothing changed".
+  - **Compare**: two dates side by side or as a swipe view, with date pickers and swap.
+  - **All pages**: every URL saved in a chosen year, grouped by section, filterable, exportable to CSV.
+  - **Changes**: every date the page looked different, with a rough content size change.
+- Loading, empty and invalid address states.
 
-## About the design files
+## Layout
 
-The design medium is **HTML/CSS/JS** — these are prototypes, not production code. Your job is to **recreate them pixel-perfectly** in whatever technology makes sense for the target codebase (React, Vue, native, whatever fits). Match the visual output; don't copy the prototype's internal structure unless it happens to fit.
+```
+src/
+  App.tsx              view state, search, scroll targets, loading/empty screens
+  lib/backspace.ts     snapshot + page lookups, sample fallbacks, date formatting
+  lib/cases.ts         use case copy and tab ids
+  components/          Nav, Home, UseCasePage, Results, Scrubber, tabs
+  styles.css           all styles (tokens on :root)
+```
 
-**Don't render these files in a browser or take screenshots unless the user asks you to.** Everything you need — dimensions, colors, layout rules — is spelled out in the source. Read the HTML and CSS directly; a screenshot won't tell you anything they don't.
+`App` takes two optional props from the prototype's tweaks: `startAt` (`'newest' | 'oldest'`) and `showLegend`.
 
-## Bundle contents
+## Data
 
-- `README.md` — this file
-- `chats/` — conversation transcripts (read these!)
-- `project/` — the `Backspace interactive prototypes` project files (HTML prototypes, assets, components)
+Snapshot lists come from the public CDX endpoint at `web.archive.org`, and pages render in an iframe from the same host. If the lookup fails or times out, the app falls back to deterministic sample data so every screen still works. As the design asks, the UI doesn't mention where the data comes from.
