@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="backspace-data.js"></script>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;background:#0e0e0d;color:#f2f1ea;font-family:'JetBrains Mono',ui-monospace,monospace;-webkit-font-smoothing:antialiased}
+a{color:#e6ff4f}a:hover{color:#fff}
+select option{background:#0e0e0d;color:#f2f1ea}
+@keyframes bk-blink{0%,100%{opacity:1}50%{opacity:0}}
+@keyframes bk-press{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
+</style>
+</helmet>
+
+<sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+<div style="min-height:100vh;display:flex;flex-direction:column">
+  <header style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:22px 36px;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:12px;font:700 15px 'JetBrains Mono',monospace;letter-spacing:0.02em">
+      <span style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:32px;border-radius:7px;background:#1d1d1b;border:1px solid #333;box-shadow:0 3px 0 #000;color:#e6ff4f">⌫</span>backspace
+    </div>
+    <div style="font-size:12px;color:#8d8b80">Saved pages from the Internet Archive</div>
+  </header>
+  <main style="flex:1;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:56px;align-items:center;max-width:1240px;width:100%;margin:0 auto;padding:32px 36px">
+    <div>
+      <div style="font-size:13px;color:#e6ff4f;letter-spacing:0.08em">A BACKSPACE KEY FOR THE WHOLE INTERNET</div>
+      <form onSubmit="{{ onSubmit }}" style="margin-top:22px">
+        <div style="font:700 clamp(30px,4.4vw,58px)/1.18 'Unbounded',sans-serif;letter-spacing:-0.02em">
+          <span>Show me </span>
+          <input value="{{ input }}" onChange="{{ onInput }}" placeholder="apple.com" autofocus style="width:min(100%,9.5em);background:transparent;border:0;border-bottom:4px solid #e6ff4f;color:#e6ff4f;font:inherit;outline:none;padding:0 4px">
+          <span> the way it looked in </span>
+          <select value="{{ year }}" onChange="{{ onYear }}" style="background:transparent;border:0;border-bottom:4px solid #e6ff4f;color:#e6ff4f;font:inherit;outline:none;cursor:pointer;appearance:none;padding:0 4px">
+            <sc-for list="{{ yearOptions }}" as="y" hint-placeholder-count="0"><option value="{{ y }}">{{ y }}</option></sc-for>
+          </select>
+          <span>.</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:18px;margin-top:36px;flex-wrap:wrap">
+          <button type="submit" style="display:flex;align-items:center;gap:12px;background:#e6ff4f;color:#0e0e0d;border:0;border-radius:12px;padding:18px 26px;font:700 18px 'Unbounded',sans-serif;cursor:pointer;box-shadow:0 6px 0 #8fa31a" style-active="transform:translateY(5px);box-shadow:0 1px 0 #8fa31a">⌫ Go back</button>
+          <span style="color:#8d8b80;font-size:13px">or press Enter</span>
+        </div>
+        <sc-if value="{{ hasError }}"><div style="margin-top:18px;color:#ff8a6b;font-size:14px">{{ error }}</div></sc-if>
+      </form>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:34px;align-items:center">
+        <span style="font-size:12px;color:#8d8b80;margin-right:4px">TRY</span>
+        <sc-for list="{{ examples }}" as="ex" hint-placeholder-count="4">
+          <button onClick="{{ ex.onClick }}" style="background:#1a1a18;border:1px solid #333;color:#f2f1ea;border-radius:8px;padding:8px 12px;font:500 13px 'JetBrains Mono',monospace;cursor:pointer;box-shadow:0 3px 0 #000" style-hover="border-color:#e6ff4f">{{ ex.label }}</button>
+        </sc-for>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:center">
+      <button onClick="{{ onSubmit }}" aria-label="Go back in time" style="width:min(100%,380px);aspect-ratio:1.25;border-radius:28px;background:linear-gradient(#262624,#181817);border:1px solid #3a3a37;box-shadow:0 18px 0 #000,0 30px 60px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.08);color:#f2f1ea;cursor:pointer;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;padding:30px 34px;text-align:left" style-active="transform:translateY(14px);box-shadow:0 4px 0 #000,inset 0 1px 0 rgba(255,255,255,.08)">
+        <span style="font-size:min(22vw,120px);line-height:1;color:#e6ff4f">⌫</span>
+        <span style="font:500 16px 'JetBrains Mono',monospace;color:#b7b5aa">backspace<br><span style="color:#6f6d64;font-size:13px">goes back one saved copy</span></span>
+      </button>
+    </div>
+  </main>
+  <footer style="display:flex;gap:28px;flex-wrap:wrap;padding:20px 36px 28px;border-top:1px solid #23231f;font-size:13px;color:#b7b5aa">
+    <span style="display:flex;align-items:center;gap:10px"><span style="background:#1d1d1b;border:1px solid #333;border-radius:6px;padding:3px 8px;box-shadow:0 2px 0 #000;color:#e6ff4f">1</span>Pick a site and a year</span>
+    <span style="display:flex;align-items:center;gap:10px"><span style="background:#1d1d1b;border:1px solid #333;border-radius:6px;padding:3px 8px;box-shadow:0 2px 0 #000;color:#e6ff4f">2</span>See that old page next to today's</span>
+    <span style="display:flex;align-items:center;gap:10px"><span style="background:#1d1d1b;border:1px solid #333;border-radius:6px;padding:3px 8px;box-shadow:0 2px 0 #000;color:#e6ff4f">3</span>Press ⌫ to keep going back</span>
+  </footer>
+</div>
+</sc-if>
+
+<sc-if value="{{ isLoading }}">
+<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;padding:32px;text-align:center">
+  <div style="width:120px;height:96px;border-radius:18px;background:linear-gradient(#262624,#181817);border:1px solid #3a3a37;box-shadow:0 8px 0 #000;display:flex;align-items:center;justify-content:center;font-size:48px;color:#e6ff4f">{{ pressGlyph }}</div>
+  <div style="font:700 clamp(22px,3vw,34px) 'Unbounded',sans-serif">Rewinding {{ url }}</div>
+  <div style="color:#8d8b80;font-size:14px;max-width:420px;line-height:1.6">Asking the Internet Archive for every saved copy<span style="animation:bk-blink 1s steps(1) infinite">_</span></div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isEmpty }}">
+<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:32px;text-align:center">
+  <div style="font-size:13px;color:#ff8a6b;letter-spacing:0.08em">NOTHING TO GO BACK TO</div>
+  <div style="font:700 clamp(26px,4vw,46px)/1.15 'Unbounded',sans-serif;max-width:720px">Nobody saved a copy of {{ url }}</div>
+  <div style="color:#b7b5aa;max-width:480px;line-height:1.6;font-size:14px">Check the spelling, or try the main address (apple.com rather than apple.com/a/long/page).</div>
+  <button onClick="{{ goHome }}" style="margin-top:10px;background:#e6ff4f;color:#0e0e0d;border:0;border-radius:10px;padding:14px 20px;font:700 15px 'Unbounded',sans-serif;cursor:pointer;box-shadow:0 5px 0 #8fa31a">Try another site</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ isResults }}">
+<div style="height:100vh;display:flex;flex-direction:column">
+  <header style="display:flex;align-items:center;gap:18px;padding:12px 20px;border-bottom:1px solid #23231f;flex-wrap:wrap">
+    <button onClick="{{ goHome }}" style="display:flex;align-items:center;gap:10px;background:none;border:0;color:#f2f1ea;font:700 14px 'JetBrains Mono',monospace;cursor:pointer;padding:0">
+      <span style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:27px;border-radius:6px;background:#1d1d1b;border:1px solid #333;box-shadow:0 2px 0 #000;color:#e6ff4f">⌫</span>backspace
+    </button>
+    <form onSubmit="{{ onSubmit }}" style="display:flex;align-items:center;gap:8px;font-size:13px;color:#8d8b80;flex-wrap:wrap">
+      <span>show me</span>
+      <input value="{{ input }}" onChange="{{ onInput }}" style="width:180px;background:#1a1a18;border:1px solid #333;border-radius:6px;color:#e6ff4f;font:500 13px 'JetBrains Mono',monospace;padding:6px 8px;outline:none">
+      <span>in</span>
+      <select value="{{ year }}" onChange="{{ onYear }}" style="background:#1a1a18;border:1px solid #333;border-radius:6px;color:#e6ff4f;font:500 13px 'JetBrains Mono',monospace;padding:6px 8px;outline:none">
+        <sc-for list="{{ yearOptions }}" as="y" hint-placeholder-count="0"><option value="{{ y }}">{{ y }}</option></sc-for>
+      </select>
+      <button type="submit" style="background:#e6ff4f;border:0;border-radius:6px;color:#0e0e0d;font:700 12px 'JetBrains Mono',monospace;padding:7px 10px;cursor:pointer">GO</button>
+    </form>
+    <div style="flex:1"></div>
+    <sc-if value="{{ isSample }}"><span style="font-size:11px;color:#0e0e0d;background:#ffb86b;border-radius:5px;padding:3px 7px">sample dates, archive list offline</span></sc-if>
+    <div style="display:flex;background:#1a1a18;border:1px solid #333;border-radius:8px;padding:3px">
+      <button onClick="{{ setSide }}" style="border:0;border-radius:6px;padding:6px 10px;font:500 12px 'JetBrains Mono',monospace;cursor:pointer;background:{{ sideBg }};color:{{ sideFg }}">Side by side</button>
+      <button onClick="{{ setSwipe }}" style="border:0;border-radius:6px;padding:6px 10px;font:500 12px 'JetBrains Mono',monospace;cursor:pointer;background:{{ swipeBg }};color:{{ swipeFg }}">Swipe</button>
+    </div>
+  </header>
+
+  <div style="padding:16px 20px 12px">
+    <div style="font:700 clamp(16px,1.8vw,22px)/1.35 'Unbounded',sans-serif;text-wrap:pretty">{{ caption }}</div>
+    <sc-if value="{{ hasNote }}"><div style="font-size:13px;color:#ffb86b;margin-top:6px">{{ note }}</div></sc-if>
+  </div>
+
+  <div style="flex:1;min-height:0;padding:0 20px">
+    <sc-if value="{{ isSide }}">
+      <div style="height:100%;display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px">
+        <div style="display:flex;flex-direction:column;border:1px solid #e6ff4f;border-radius:12px;overflow:hidden;min-height:0">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#e6ff4f;color:#0e0e0d;font-size:12px;font-weight:700"><span>THEN · {{ thenDate }}</span><span>{{ thenAgo }}</span></div>
+          <div style="flex:1;position:relative;background:#fff">
+            <iframe src="{{ thenSrc }}" onLoad="{{ onThenLoad }}" title="Old copy" style="position:absolute;inset:0;width:100%;height:100%;border:0"></iframe>
+            <sc-if value="{{ thenLoading }}"><div style="position:absolute;inset:0;background:#141413;display:flex;align-items:center;justify-content:center;color:#8d8b80;font-size:13px;text-align:center;padding:20px">Loading the {{ thenDate }} copy<span style="animation:bk-blink 1s steps(1) infinite">_</span></div></sc-if>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;border:1px solid #3a3a37;border-radius:12px;overflow:hidden;min-height:0">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#1d1d1b;color:#f2f1ea;font-size:12px;font-weight:700"><span>NOW · {{ nowDate }}</span><span style="color:#8d8b80">newest saved copy</span></div>
+          <div style="flex:1;position:relative;background:#fff">
+            <iframe src="{{ nowSrc }}" onLoad="{{ onNowLoad }}" title="Newest copy" style="position:absolute;inset:0;width:100%;height:100%;border:0"></iframe>
+            <sc-if value="{{ nowLoading }}"><div style="position:absolute;inset:0;background:#141413;display:flex;align-items:center;justify-content:center;color:#8d8b80;font-size:13px">Loading the newest copy<span style="animation:bk-blink 1s steps(1) infinite">_</span></div></sc-if>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ isSwipe }}">
+      <div ref="{{ swipeRef }}" style="height:100%;position:relative;border:1px solid #3a3a37;border-radius:12px;overflow:hidden;background:#fff">
+        <iframe src="{{ nowSrc }}" onLoad="{{ onNowLoad }}" title="Newest copy" style="position:absolute;inset:0;width:100%;height:100%;border:0;pointer-events:none"></iframe>
+        <iframe src="{{ thenSrc }}" onLoad="{{ onThenLoad }}" title="Old copy" style="position:absolute;inset:0;width:100%;height:100%;border:0;pointer-events:none;background:#fff;clip-path:inset(0 {{ clipRight }} 0 0)"></iframe>
+        <div style="position:absolute;top:0;bottom:0;left:{{ splitPct }};width:3px;margin-left:-1px;background:#e6ff4f;pointer-events:none"></div>
+        <div style="position:absolute;top:50%;left:{{ splitPct }};transform:translate(-50%,-50%);background:#e6ff4f;color:#0e0e0d;border-radius:999px;padding:10px 14px;font:700 13px 'JetBrains Mono',monospace;pointer-events:none;box-shadow:0 6px 20px rgba(0,0,0,.4)">◀ drag ▶</div>
+        <div style="position:absolute;top:12px;left:12px;background:#e6ff4f;color:#0e0e0d;border-radius:6px;padding:4px 8px;font-size:12px;font-weight:700;pointer-events:none">THEN · {{ thenDate }}</div>
+        <div style="position:absolute;top:12px;right:12px;background:#0e0e0d;color:#f2f1ea;border-radius:6px;padding:4px 8px;font-size:12px;font-weight:700;pointer-events:none">NOW · {{ nowDate }}</div>
+        <div onPointerDown="{{ onSwipeDown }}" onPointerMove="{{ onSwipeMove }}" onPointerUp="{{ onSwipeUp }}" style="position:absolute;inset:0;cursor:ew-resize;touch-action:none"></div>
+        <sc-if value="{{ anyLoading }}"><div style="position:absolute;inset:0;background:#141413;display:flex;align-items:center;justify-content:center;color:#8d8b80;font-size:13px">Loading both copies<span style="animation:bk-blink 1s steps(1) infinite">_</span></div></sc-if>
+      </div>
+    </sc-if>
+  </div>
+
+  <div style="padding:14px 20px 16px;display:flex;flex-direction:column;gap:10px">
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <sc-for list="{{ yearKeys }}" as="k" hint-placeholder-count="12">
+        <button onClick="{{ k.onClick }}" title="{{ k.title }}" style="min-width:52px;border-radius:7px;padding:7px 8px;font:700 12px 'JetBrains Mono',monospace;cursor:pointer;background:{{ k.bg }};color:{{ k.fg }};border:1px solid {{ k.border }};box-shadow:0 3px 0 #000">{{ k.label }}</button>
+      </sc-for>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+      <span style="font-size:11px;color:#8d8b80;width:52px">{{ selYear }}</span>
+      <sc-for list="{{ monthKeys }}" as="m" hint-placeholder-count="12">
+        <button onClick="{{ m.onClick }}" disabled="{{ m.disabled }}" title="{{ m.title }}" style="width:46px;border-radius:6px;padding:5px 0;font:500 11px 'JetBrains Mono',monospace;cursor:pointer;background:{{ m.bg }};color:{{ m.fg }};border:1px solid {{ m.border }};opacity:{{ m.op }}">{{ m.label }}</button>
+      </sc-for>
+      <span style="font-size:11px;color:#8d8b80;margin-left:8px">• = page changed that month</span>
+    </div>
+    <div style="display:flex;gap:22px;flex-wrap:wrap;font-size:12px;color:#b7b5aa;padding-top:8px;border-top:1px solid #23231f">
+      <span style="display:flex;align-items:center;gap:8px"><button onClick="{{ older }}" style="background:#1d1d1b;border:1px solid #333;border-radius:5px;padding:2px 8px;box-shadow:0 2px 0 #000;color:#e6ff4f;font:700 12px 'JetBrains Mono',monospace;cursor:pointer">⌫</button>older copy</span>
+      <span style="display:flex;align-items:center;gap:8px"><button onClick="{{ newer }}" style="background:#1d1d1b;border:1px solid #333;border-radius:5px;padding:2px 8px;box-shadow:0 2px 0 #000;color:#e6ff4f;font:700 12px 'JetBrains Mono',monospace;cursor:pointer">⏎</button>newer copy</span>
+      <span style="display:flex;align-items:center;gap:8px"><button onClick="{{ toggleMode }}" style="background:#1d1d1b;border:1px solid #333;border-radius:5px;padding:2px 8px;box-shadow:0 2px 0 #000;color:#e6ff4f;font:700 12px 'JetBrains Mono',monospace;cursor:pointer">S</button>switch view</span>
+      <div style="flex:1"></div>
+      <a href="{{ originalHref }}" target="_blank">open this copy on the Internet Archive ↗</a>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;defaultMode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;side&quot;,&quot;swipe&quot;],&quot;default&quot;:&quot;side&quot;,&quot;tsType&quot;:&quot;'side'|'swipe'&quot;}}">
+class Component extends DCLogic {
+  state = { view: 'home', input: '', year: '2008', url: '', snaps: [], idx: 0, mode: null, split: 50, thenLoading: false, nowLoading: false, error: '', note: '', source: '', glyph: 0 };
+  swipeRef = React.createRef();
+  componentDidMount() {
+    this.onKey = (e) => {
+      if (this.state.view !== 'results') return;
+      const t = e.target.tagName;
+      if (t === 'INPUT' || t === 'SELECT' || t === 'TEXTAREA') return;
+      if (e.key === 'Backspace' || e.key === 'ArrowLeft') { e.preventDefault(); this.step(-1); }
+      else if (e.key === 'Enter' || e.key === 'ArrowRight') { e.preventDefault(); this.step(1); }
+      else if (e.key === 's' || e.key === 'S') this.toggleMode();
+    };
+    window.addEventListener('keydown', this.onKey);
+  }
+  componentWillUnmount() { window.removeEventListener('keydown', this.onKey); clearInterval(this.gi); }
+  getMode() { return this.state.mode || this.props.defaultMode || 'side'; }
+  toggleMode() { this.setState({ mode: this.getMode() === 'side' ? 'swipe' : 'side', thenLoading: true, nowLoading: true }); }
+  async go() {
+    const B = window.Backspace;
+    const url = B.normalize(this.state.input);
+    if (!url) { this.setState({ error: "That doesn't look like a web address. Try apple.com" }); return; }
+    const year = +this.state.year;
+    this.setState({ view: 'loading', url, input: url, error: '' });
+    clearInterval(this.gi);
+    this.gi = setInterval(() => this.setState((s) => ({ glyph: s.glyph + 1 })), 380);
+    const res = await B.fetchSnapshots(url);
+    clearInterval(this.gi);
+    if (this.state.url !== url) return;
+    if (!res.snaps.length) { this.setState({ view: 'empty' }); return; }
+    let idx = res.snaps.findIndex((s) => s.year >= year);
+    let note = '';
+    if (idx === -1) idx = res.snaps.length - 1;
+    if (res.snaps[0].year > year) note = `The oldest saved copy is from ${res.snaps[0].year}, so we started there.`;
+    else if (res.snaps[idx].year !== year) note = `Nothing was saved in ${year}. This is the closest copy after it.`;
+    this.setState({ view: 'results', snaps: res.snaps, source: res.source, idx, note, thenLoading: true, nowLoading: true });
+  }
+  select(i) {
+    if (i === this.state.idx) return;
+    this.setState({ idx: i, thenLoading: true, note: '', year: String(this.state.snaps[i].year) });
+  }
+  step(d) {
+    const i = this.state.idx + d;
+    if (i < 0 || i >= this.state.snaps.length) return;
+    this.select(i);
+  }
+  setSplit(x) {
+    const el = this.swipeRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    this.setState({ split: Math.max(2, Math.min(98, ((x - r.left) / r.width) * 100)) });
+  }
+  renderVals() {
+    const B = window.Backspace;
+    const s = this.state;
+    const n = s.snaps.length;
+    const cur = s.snaps[s.idx];
+    const latest = s.snaps[n - 1];
+    const mode = this.getMode();
+    const now = new Date().getFullYear();
+    const yearOptions = [];
+    for (let y = now; y >= 1996; y--) yearOptions.push(String(y));
+    let caption = '';
+    if (cur && latest) {
+      const changes = s.snaps.slice(s.idx + 1).filter((x) => x.changed).length;
+      caption = s.idx === n - 1
+        ? `This is ${s.url} in its newest saved copy, from ${B.fmt(cur.ts)}. Press ⌫ to go back.`
+        : `Left is ${s.url} on ${B.fmt(cur.ts)}. Right is the newest copy. The page changed ${B.plural(changes, 'time', 'times')} in between.`;
+    }
+    const groups = B ? B.byYear(s.snaps) : [];
+    const yearKeys = groups.map((g) => {
+      const sel = cur && g.year === cur.year;
+      return { label: String(g.year), title: `${B.plural(g.list.length, 'copy', 'copies')} saved, ${B.plural(g.changes, 'change', 'changes')}`, bg: sel ? '#e6ff4f' : '#1d1d1b', fg: sel ? '#0e0e0d' : '#f2f1ea', border: sel ? '#e6ff4f' : '#333', onClick: () => this.select(g.list[0].i) };
+    });
+    const yearList = cur ? (groups.find((g) => g.year === cur.year) || { list: [] }).list : [];
+    const monthKeys = B ? B.MONTHS.map((m, mi) => {
+      const sn = yearList.find((x) => x.month === mi + 1);
+      const sel = sn && sn.i === s.idx;
+      return { label: m.slice(0, 3) + (sn && sn.changed ? '•' : ''), disabled: !sn, title: sn ? B.fmt(sn.ts) : 'Nothing saved', bg: sel ? '#e6ff4f' : '#161615', fg: sel ? '#0e0e0d' : '#d8d6cc', border: sel ? '#e6ff4f' : '#2c2c29', op: sn ? 1 : 0.3, onClick: () => sn && this.select(sn.i) };
+    }) : [];
+    const glyphs = ['⌫', '⌫ ⌫', '⌫ ⌫ ⌫'];
+    return {
+      isHome: s.view === 'home', isLoading: s.view === 'loading', isEmpty: s.view === 'empty', isResults: s.view === 'results',
+      input: s.input, year: s.year, yearOptions, url: s.url, error: s.error, hasError: !!s.error,
+      isSample: s.source === 'sample', note: s.note, hasNote: !!s.note,
+      pressGlyph: glyphs[s.glyph % 3],
+      examples: (B ? B.examples : []).map((x) => ({ label: x, onClick: () => this.setState({ input: x }, () => this.go()) })),
+      onSubmit: (e) => { e.preventDefault(); this.go(); },
+      onInput: (e) => this.setState({ input: e.target.value, error: '' }),
+      onYear: (e) => this.setState({ year: e.target.value }),
+      goHome: () => this.setState({ view: 'home', url: '' }),
+      caption, isSide: mode === 'side', isSwipe: mode === 'swipe',
+      sideBg: mode === 'side' ? '#e6ff4f' : 'transparent', sideFg: mode === 'side' ? '#0e0e0d' : '#b7b5aa',
+      swipeBg: mode === 'swipe' ? '#e6ff4f' : 'transparent', swipeFg: mode === 'swipe' ? '#0e0e0d' : '#b7b5aa',
+      setSide: () => mode !== 'side' && this.toggleMode(), setSwipe: () => mode !== 'swipe' && this.toggleMode(), toggleMode: () => this.toggleMode(),
+      thenDate: cur ? B.fmtShort(cur.ts) : '', thenAgo: cur ? B.ago(cur.ts) : '', nowDate: latest ? B.fmtShort(latest.ts) : '',
+      thenSrc: cur ? B.frameUrl(s.url, cur.ts) : 'about:blank', nowSrc: latest ? B.frameUrl(s.url, latest.ts) : 'about:blank',
+      originalHref: cur ? B.pageUrl(s.url, cur.ts) : '#',
+      thenLoading: s.thenLoading, nowLoading: s.nowLoading, anyLoading: s.thenLoading || s.nowLoading,
+      onThenLoad: () => this.setState({ thenLoading: false }), onNowLoad: () => this.setState({ nowLoading: false }),
+      swipeRef: this.swipeRef, splitPct: s.split + '%', clipRight: (100 - s.split) + '%',
+      onSwipeDown: (e) => { e.currentTarget.setPointerCapture(e.pointerId); this.sw = true; this.setSplit(e.clientX); },
+      onSwipeMove: (e) => { if (this.sw) this.setSplit(e.clientX); },
+      onSwipeUp: () => { this.sw = false; },
+      yearKeys, monthKeys, selYear: cur ? String(cur.year) : '',
+      older: () => this.step(-1), newer: () => this.step(1),
+    };
+  }
+}
+
+</script>
+</body>
+</html>

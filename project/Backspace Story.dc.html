@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="backspace-data.js"></script>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;background:#f1ebdf;color:#1f1a14;font-family:'Instrument Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:#a8321c}a:hover{color:#1f1a14}
+@keyframes bst-dots{0%{opacity:.2}50%{opacity:1}100%{opacity:.2}}
+</style>
+</helmet>
+
+<div style="max-width:1120px;margin:0 auto;padding:0 32px">
+  <header style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding:18px 0 10px;border-bottom:1px solid #1f1a14;font-size:13px;flex-wrap:wrap">
+    <span>{{ today }}</span>
+    <button onClick="{{ goHome }}" style="background:none;border:0;cursor:pointer;font:400 34px 'Instrument Serif',serif;color:#1f1a14;padding:0;letter-spacing:-0.01em">Backspace</button>
+    <span>Pages saved by the Internet Archive</span>
+  </header>
+  <div style="height:3px;border-bottom:1px solid #1f1a14"></div>
+
+  <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+    <main style="padding:72px 0 40px;text-align:center">
+      <h1 style="font:400 clamp(48px,8vw,112px)/0.95 'Instrument Serif',serif;margin:0;letter-spacing:-0.02em;text-wrap:balance">Every website has a past. <em style="color:#a8321c">Look it up.</em></h1>
+      <p style="font-size:19px;line-height:1.5;color:#5a5044;max-width:560px;margin:26px auto 40px;text-wrap:pretty">Type any address and read its history year by year. Open any month to see the page exactly as it looked back then.</p>
+      <form onSubmit="{{ onSubmit }}" style="display:flex;gap:14px;max-width:640px;margin:0 auto;align-items:flex-end;flex-wrap:wrap;justify-content:center">
+        <input value="{{ input }}" onChange="{{ onInput }}" placeholder="Type a website, like apple.com" autofocus style="flex:1;min-width:240px;background:transparent;border:0;border-bottom:2px solid #1f1a14;font:400 30px 'Instrument Serif',serif;padding:8px 2px;outline:none;color:#1f1a14;text-align:center">
+        <button type="submit" style="background:#1f1a14;color:#f1ebdf;border:0;border-radius:999px;padding:14px 24px;font:600 15px 'Instrument Sans',sans-serif;cursor:pointer" style-hover="background:#a8321c">Read its history</button>
+      </form>
+      <sc-if value="{{ hasError }}"><div style="margin-top:18px;color:#a8321c;font-size:15px">{{ error }}</div></sc-if>
+    </main>
+    <section style="border-top:1px solid #1f1a14;padding:22px 0 60px">
+      <div style="font-size:12px;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:16px">Start with a famous past</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1px;background:#cdbfa8;border:1px solid #cdbfa8">
+        <sc-for list="{{ famous }}" as="f" hint-placeholder-count="4">
+          <button onClick="{{ f.onClick }}" style="text-align:left;background:#f1ebdf;border:0;padding:22px;cursor:pointer;display:flex;flex-direction:column;gap:8px" style-hover="background:#e8dfcf">
+            <span style="font:400 28px 'Instrument Serif',serif;color:#1f1a14">{{ f.site }}</span>
+            <span style="font-size:14px;color:#5a5044;line-height:1.4">{{ f.blurb }}</span>
+          </button>
+        </sc-for>
+      </div>
+    </section>
+  </sc-if>
+
+  <sc-if value="{{ isLoading }}">
+    <main style="padding:120px 0;text-align:center">
+      <div style="font:italic 400 clamp(36px,5vw,64px) 'Instrument Serif',serif">Digging up {{ url }}</div>
+      <div style="display:flex;gap:10px;justify-content:center;margin-top:24px">{{ dots }}</div>
+      <p style="color:#5a5044;margin-top:20px">Collecting every copy the archive has saved. This takes a few seconds.</p>
+    </main>
+  </sc-if>
+
+  <sc-if value="{{ isEmpty }}">
+    <main style="padding:110px 0;text-align:center">
+      <div style="font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#a8321c">No history found</div>
+      <div style="font:400 clamp(36px,5vw,64px)/1.05 'Instrument Serif',serif;margin-top:14px">{{ url }} has no saved copies yet.</div>
+      <p style="color:#5a5044;max-width:480px;margin:18px auto 28px;line-height:1.5">Check the spelling, or try the main address. For example apple.com instead of apple.com/some/page.</p>
+      <button onClick="{{ goHome }}" style="background:#1f1a14;color:#f1ebdf;border:0;border-radius:999px;padding:13px 22px;font:600 15px 'Instrument Sans',sans-serif;cursor:pointer">Look up another site</button>
+    </main>
+  </sc-if>
+
+  <sc-if value="{{ isResults }}">
+    <main style="padding:44px 0 80px">
+      <div style="display:flex;justify-content:space-between;gap:16px;align-items:center;flex-wrap:wrap;font-size:13px">
+        <button onClick="{{ goHome }}" style="background:none;border:0;cursor:pointer;color:#5a5044;font:500 13px 'Instrument Sans',sans-serif;padding:0">← Look up another site</button>
+        <sc-if value="{{ isSample }}"><span style="background:#ead9a6;border-radius:4px;padding:3px 8px">Archive list unavailable, showing sample dates</span></sc-if>
+      </div>
+      <h1 style="font:400 clamp(44px,7vw,96px)/0.95 'Instrument Serif',serif;margin:18px 0 0;letter-spacing:-0.02em;overflow-wrap:anywhere">The history of <em style="color:#a8321c">{{ url }}</em></h1>
+      <p style="font-size:20px;line-height:1.5;max-width:720px;margin:20px 0 0;color:#3d352b;text-wrap:pretty">{{ lede }}</p>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:28px;margin-top:40px">
+        <sc-for list="{{ diptych }}" as="d" hint-placeholder-count="2">
+          <button onClick="{{ d.onClick }}" style="text-align:left;background:none;border:0;padding:0;cursor:pointer;display:flex;flex-direction:column;gap:10px">
+            <div style="width:100%;aspect-ratio:16/10;overflow:hidden;position:relative;border:1px solid #1f1a14;background:#fff">
+              <iframe src="{{ d.src }}" title="{{ d.label }}" loading="lazy" tabindex="-1" style="width:400%;height:400%;border:0;transform:scale(0.25);transform-origin:0 0;pointer-events:none"></iframe>
+              <div style="position:absolute;inset:0" style-hover="background:rgba(168,50,28,.08)"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;gap:12px;align-items:baseline;width:100%">
+              <span style="font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#1f1a14">{{ d.label }}</span>
+              <span style="font:italic 400 20px 'Instrument Serif',serif;color:#1f1a14">{{ d.date }}</span>
+            </div>
+          </button>
+        </sc-for>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-top:64px;padding-bottom:14px;border-bottom:1px solid #1f1a14;flex-wrap:wrap">
+        <h2 style="font:400 40px 'Instrument Serif',serif;margin:0">Year by year</h2>
+        <div style="display:flex;gap:18px;font-size:13px;color:#3d352b;flex-wrap:wrap;align-items:center">
+          <span style="display:flex;align-items:center;gap:7px"><span style="width:14px;height:14px;background:#1f1a14"></span>Page changed</span>
+          <span style="display:flex;align-items:center;gap:7px"><span style="width:14px;height:14px;background:#d6c9b2"></span>Saved, looked the same</span>
+          <span style="display:flex;align-items:center;gap:7px"><span style="width:14px;height:14px;border:1px dashed #b8a98f"></span>Nothing saved</span>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:4px;padding:10px 0 4px;margin-left:clamp(90px,14vw,170px);font-size:11px;color:#7a6e5e;text-align:center">
+        <sc-for list="{{ monthLetters }}" as="ml" hint-placeholder-count="12"><span>{{ ml }}</span></sc-for>
+      </div>
+      <sc-for list="{{ chapters }}" as="c" hint-placeholder-count="6">
+        <div style="display:flex;align-items:center;gap:0;padding:12px 0;border-bottom:1px solid #d6c9b2">
+          <div style="width:clamp(90px,14vw,170px);flex-shrink:0">
+            <div style="font:400 clamp(30px,3.6vw,44px)/1 'Instrument Serif',serif">{{ c.year }}</div>
+            <div style="font-size:12px;color:#5a5044;margin-top:4px">{{ c.summary }}</div>
+          </div>
+          <div style="flex:1;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:4px">
+            <sc-for list="{{ c.months }}" as="m" hint-placeholder-count="12">
+              <button onClick="{{ m.onClick }}" disabled="{{ m.disabled }}" title="{{ m.title }}" style="height:34px;background:{{ m.bg }};border:1px {{ m.borderStyle }} {{ m.border }};cursor:{{ m.cursor }};padding:0" style-hover="outline:2px solid #a8321c;outline-offset:1px"></button>
+            </sc-for>
+          </div>
+        </div>
+      </sc-for>
+    </main>
+  </sc-if>
+</div>
+
+<sc-if value="{{ readerOpen }}">
+  <div style="position:fixed;inset:0;z-index:50;background:#f1ebdf;display:flex;flex-direction:column">
+    <div style="display:flex;align-items:center;gap:20px;padding:14px 24px;border-bottom:1px solid #1f1a14;flex-wrap:wrap">
+      <div style="flex:1;min-width:260px">
+        <div style="font:400 clamp(22px,2.6vw,32px)/1.1 'Instrument Serif',serif">{{ url }}, as it looked on <em style="color:#a8321c">{{ readerDate }}</em></div>
+        <div style="font-size:13px;color:#5a5044;margin-top:4px">{{ readerAgo }}. {{ readerNote }}</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button onClick="{{ prev }}" style="background:none;border:1px solid #1f1a14;border-radius:999px;padding:9px 16px;font:500 14px 'Instrument Sans',sans-serif;cursor:pointer;color:#1f1a14" style-hover="background:#1f1a14;color:#f1ebdf">← Earlier</button>
+        <button onClick="{{ next }}" style="background:none;border:1px solid #1f1a14;border-radius:999px;padding:9px 16px;font:500 14px 'Instrument Sans',sans-serif;cursor:pointer;color:#1f1a14" style-hover="background:#1f1a14;color:#f1ebdf">Later →</button>
+        <button onClick="{{ closeReader }}" style="background:#1f1a14;color:#f1ebdf;border:0;border-radius:999px;padding:9px 16px;font:500 14px 'Instrument Sans',sans-serif;cursor:pointer">Back to the history</button>
+      </div>
+    </div>
+    <div style="flex:1;position:relative;margin:16px 24px 0;border:1px solid #1f1a14;background:#fff">
+      <iframe src="{{ readerSrc }}" onLoad="{{ onFrameLoad }}" title="Saved copy" style="position:absolute;inset:0;width:100%;height:100%;border:0"></iframe>
+      <sc-if value="{{ frameLoading }}">
+        <div style="position:absolute;inset:0;background:#f1ebdf;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:24px">
+          <div style="font:italic 400 34px 'Instrument Serif',serif">Opening {{ readerDate }}</div>
+          <div style="display:flex;gap:10px">{{ dots }}</div>
+        </div>
+      </sc-if>
+    </div>
+    <div style="display:flex;justify-content:space-between;gap:16px;padding:10px 24px 14px;font-size:12px;color:#5a5044;flex-wrap:wrap">
+      <span>This is a saved copy. Some pictures or links may not load, because the archive did not keep everything. Use ← → keys to move, Esc to close.</span>
+      <a href="{{ readerHref }}" target="_blank">Open on Internet Archive ↗</a>
+    </div>
+  </div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;order&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;oldest&quot;,&quot;newest&quot;],&quot;default&quot;:&quot;oldest&quot;,&quot;tsType&quot;:&quot;'oldest'|'newest'&quot;}}">
+class Component extends DCLogic {
+  state = { view: 'home', input: '', url: '', snaps: [], reader: null, frameLoading: false, error: '', source: '' };
+  componentDidMount() {
+    this.onKey = (e) => {
+      if (this.state.reader == null) return;
+      if (e.key === 'Escape') this.setState({ reader: null });
+      if (e.key === 'ArrowLeft') this.open(this.state.reader - 1);
+      if (e.key === 'ArrowRight') this.open(this.state.reader + 1);
+    };
+    window.addEventListener('keydown', this.onKey);
+  }
+  componentWillUnmount() { window.removeEventListener('keydown', this.onKey); }
+  async go(raw) {
+    const B = window.Backspace;
+    const url = B.normalize(raw);
+    if (!url) { this.setState({ error: "That doesn't look like a web address. Try something like apple.com" }); return; }
+    this.setState({ view: 'loading', url, input: url, error: '', reader: null });
+    const res = await B.fetchSnapshots(url);
+    if (this.state.url !== url) return;
+    this.setState({ view: res.snaps.length ? 'results' : 'empty', snaps: res.snaps, source: res.source });
+    window.scrollTo(0, 0);
+  }
+  open(i) {
+    if (i < 0 || i >= this.state.snaps.length) return;
+    this.setState({ reader: i, frameLoading: true });
+  }
+  renderVals() {
+    const B = window.Backspace;
+    const s = this.state;
+    const n = s.snaps.length;
+    const first = s.snaps[0], last = s.snaps[n - 1];
+    const changes = s.snaps.filter((x) => x.changed).length;
+    const dot = (d) => React.createElement('span', { key: d, style: { width: 8, height: 8, borderRadius: '50%', background: '#a8321c', animation: `bst-dots 1.2s ${d * 0.2}s infinite` } });
+    let chapters = B ? B.byYear(s.snaps) : [];
+    if ((this.props.order ?? 'oldest') === 'newest') chapters = chapters.slice().reverse();
+    chapters = chapters.map((g) => ({
+      year: g.year,
+      summary: `${B.plural(g.list.length, 'copy', 'copies')}, ${g.changes ? B.plural(g.changes, 'change', 'changes') : 'no changes'}`,
+      months: B.MONTHS.map((m, mi) => {
+        const sn = g.list.find((x) => x.month === mi + 1);
+        return {
+          disabled: !sn, title: sn ? `${B.fmt(sn.ts)}${sn.changed ? ', page changed' : ', looked the same'}` : `${m} ${g.year}, nothing saved`,
+          bg: sn ? (sn.changed ? '#1f1a14' : '#d6c9b2') : 'transparent', border: sn ? 'transparent' : '#b8a98f', borderStyle: sn ? 'solid' : 'dashed',
+          cursor: sn ? 'pointer' : 'default', onClick: () => sn && this.open(sn.i),
+        };
+      }),
+    }));
+    const r = s.reader != null ? s.snaps[s.reader] : null;
+    const famous = [
+      ['spacejam.com', 'The 1996 movie site, a time capsule of the early web.'],
+      ['apple.com', 'From beige computers to the first iPhone.'],
+      ['nytimes.com', 'Decades of front pages, one month at a time.'],
+      ['wikipedia.org', 'How a small encyclopedia project grew up.'],
+    ];
+    return {
+      today: new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
+      isHome: s.view === 'home', isLoading: s.view === 'loading', isEmpty: s.view === 'empty', isResults: s.view === 'results',
+      input: s.input, url: s.url, error: s.error, hasError: !!s.error, isSample: s.source === 'sample',
+      famous: famous.map(([site, blurb]) => ({ site, blurb, onClick: () => this.go(site) })),
+      onSubmit: (e) => { e.preventDefault(); this.go(this.state.input); },
+      onInput: (e) => this.setState({ input: e.target.value, error: '' }),
+      goHome: () => this.setState({ view: 'home', url: '', reader: null }),
+      dots: [0, 1, 2].map(dot),
+      lede: first ? `The Internet Archive first saved this page on ${B.fmt(first.ts)}, ${B.ago(first.ts)}. Since then it has kept ${B.plural(n, 'copy', 'copies')}, and the page changed ${B.plural(changes, 'time', 'times')}. Pick any month below to see it.` : '',
+      diptych: first ? [
+        { label: 'The oldest copy', date: B.fmtMonth(first.ts), src: B.frameUrl(s.url, first.ts), onClick: () => this.open(0) },
+        { label: 'The newest copy', date: B.fmtMonth(last.ts), src: B.frameUrl(s.url, last.ts), onClick: () => this.open(n - 1) },
+      ] : [],
+      monthLetters: ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'],
+      chapters,
+      readerOpen: !!r,
+      readerDate: r ? B.fmt(r.ts) : '', readerAgo: r ? `That's ${B.ago(r.ts)}` : '',
+      readerNote: !r ? '' : r.i === 0 ? 'This is the oldest copy there is.' : r.changed ? 'The page looked different from the copy before it.' : 'It looked the same as the copy before it.',
+      readerSrc: r ? B.frameUrl(s.url, r.ts) : 'about:blank', readerHref: r ? B.pageUrl(s.url, r.ts) : '#',
+      frameLoading: s.frameLoading, onFrameLoad: () => this.setState({ frameLoading: false }),
+      prev: () => this.open(s.reader - 1), next: () => this.open(s.reader + 1),
+      closeReader: () => this.setState({ reader: null }),
+    };
+  }
+}
+
+</script>
+</body>
+</html>

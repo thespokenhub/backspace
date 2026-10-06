@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="backspace-data.js"></script>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;background:#f4f2ee;color:#16150f;font-family:'Geist',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:#16150f}a:hover{color:#e2502a}
+@keyframes bs-slide{0%{transform:translateX(-100%)}100%{transform:translateX(260%)}}
+</style>
+</helmet>
+
+<sc-if value="{{ showNav }}" hint-placeholder-val="{{ true }}">
+<nav style="position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:28px;padding:14px 32px;background:rgba(244,242,238,.94);backdrop-filter:blur(8px);border-bottom:1px solid #dcd8cd;flex-wrap:wrap">
+  <button onClick="{{ goHome }}" style="display:flex;align-items:center;gap:10px;border:0;background:none;font:600 18px 'Geist',sans-serif;letter-spacing:-0.02em;color:#16150f;cursor:pointer;padding:0">
+    <span style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:28px;border-radius:7px;background:#16150f;color:#f4f2ee;font-size:15px;box-shadow:0 3px 0 #e2502a">⌫</span>Backspace
+  </button>
+  <div style="display:flex;align-items:center;gap:4px;font-size:15px">
+    <button onClick="{{ navFeatures }}" style="border:0;background:none;font:500 15px 'Geist',sans-serif;color:#16150f;padding:8px 12px;border-radius:8px;cursor:pointer" style-hover="background:#e9e6de">Features</button>
+    <div style="position:relative">
+      <button onClick="{{ toggleMenu }}" style="border:0;background:none;font:500 15px 'Geist',sans-serif;color:#16150f;padding:8px 12px;border-radius:8px;cursor:pointer" style-hover="background:#e9e6de">Use cases ▾</button>
+      <sc-if value="{{ menuOpen }}">
+        <div style="position:absolute;top:44px;left:0;width:320px;background:#fff;border:1px solid #16150f;border-radius:12px;box-shadow:0 6px 0 #16150f;padding:8px;display:flex;flex-direction:column;gap:2px">
+          <sc-for list="{{ caseLinks }}" as="c" hint-placeholder-count="4">
+            <button onClick="{{ c.onClick }}" style="text-align:left;border:0;background:none;border-radius:8px;padding:10px 12px;cursor:pointer;display:flex;flex-direction:column;gap:2px" style-hover="background:#f4f2ee">
+              <span style="font:600 15px 'Geist',sans-serif;color:#16150f">{{ c.title }}</span>
+              <span style="font:400 13px 'Geist',sans-serif;color:#6b685e">{{ c.short }}</span>
+            </button>
+          </sc-for>
+        </div>
+      </sc-if>
+    </div>
+    <button onClick="{{ navHow }}" style="border:0;background:none;font:500 15px 'Geist',sans-serif;color:#16150f;padding:8px 12px;border-radius:8px;cursor:pointer" style-hover="background:#e9e6de">How it works</button>
+  </div>
+  <div style="flex:1"></div>
+  <button onClick="{{ navTry }}" style="border:0;border-radius:9px;background:#16150f;color:#fff;font:600 14px 'Geist',sans-serif;padding:10px 16px;cursor:pointer" style-hover="background:#e2502a">Try it free</button>
+</nav>
+</sc-if>
+
+<sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+<div>
+  <section style="min-height:calc(100vh - 62px);display:flex;flex-direction:column">
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;width:100%;max-width:840px;margin:0 auto;padding:56px 32px 40px">
+      <h1 style="font-size:clamp(44px,7.4vw,92px);letter-spacing:-0.045em;line-height:0.94;font-weight:600;margin:0;text-wrap:balance">See any website the way it used to look.</h1>
+      <p style="font-size:20px;line-height:1.45;color:#55524a;margin:24px 0 36px;max-width:580px;text-wrap:pretty">Type a web address. Drag back through the years. See the page, every URL on the site and every change, on any date since 1996.</p>
+      <form onSubmit="{{ onSubmit }}" style="display:flex;gap:8px;flex-wrap:wrap;background:#fff;border:1.5px solid #16150f;border-radius:14px;padding:8px;box-shadow:0 6px 0 #16150f">
+        <input ref="{{ heroInputRef }}" value="{{ input }}" onChange="{{ onInput }}" placeholder="Type a website, like apple.com" style="flex:1;min-width:200px;border:0;outline:none;font:500 20px 'Geist',sans-serif;padding:12px 14px;background:transparent;color:#16150f">
+        <button type="submit" style="border:0;border-radius:9px;background:#e2502a;color:#fff;font:600 17px 'Geist',sans-serif;padding:14px 22px;cursor:pointer" style-hover="background:#c63f1c">Show its history</button>
+      </form>
+      <sc-if value="{{ hasError }}"><div style="margin-top:18px;color:#b3341a;font-size:15px">{{ error }}</div></sc-if>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:28px;font-size:14px;color:#6b685e">
+        <span>Not sure? Try one:</span>
+        <sc-for list="{{ examples }}" as="ex" hint-placeholder-count="4">
+          <button onClick="{{ ex.onClick }}" style="border:1px solid #d3cfc4;background:#fff;border-radius:999px;padding:7px 14px;font:500 14px 'Geist',sans-serif;color:#16150f;cursor:pointer" style-hover="border-color:#16150f">{{ ex.label }}</button>
+        </sc-for>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1px;background:#d9d5ca;border-top:1px solid #d9d5ca">
+      <div style="background:#f4f2ee;padding:24px 32px"><div style="font:500 13px 'Geist Mono',monospace;color:#e2502a">01</div><div style="font-weight:600;margin-top:6px">Type an address</div><div style="color:#6b685e;font-size:14px;margin-top:4px">Any site. Your own, a rival, a blog.</div></div>
+      <div style="background:#f4f2ee;padding:24px 32px"><div style="font:500 13px 'Geist Mono',monospace;color:#e2502a">02</div><div style="font-weight:600;margin-top:6px">Drag the timeline</div><div style="color:#6b685e;font-size:14px;margin-top:4px">Each bar is one saved copy of the page.</div></div>
+      <div style="background:#f4f2ee;padding:24px 32px"><div style="font:500 13px 'Geist Mono',monospace;color:#e2502a">03</div><div style="font-weight:600;margin-top:6px">See the old page</div><div style="color:#6b685e;font-size:14px;margin-top:4px">Scroll it and click around, like it's live.</div></div>
+    </div>
+  </section>
+
+  <section ref="{{ featuresRef }}" style="max-width:1180px;margin:0 auto;padding:110px 32px 40px">
+    <div style="font:500 13px 'Geist Mono',monospace;color:#e2502a">WHAT YOU CAN DO</div>
+    <h2 style="font-size:clamp(32px,4.4vw,56px);letter-spacing:-0.04em;line-height:1;font-weight:600;margin:12px 0 48px;max-width:760px;text-wrap:balance">Four ways to look into a website's past.</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,500px),1fr));gap:16px">
+      <div style="background:#fff;border:1px solid #d9d5ca;border-radius:16px;padding:28px;display:flex;flex-direction:column;gap:18px">
+        <div style="height:150px;border-radius:10px;background:#f4f2ee;border:1px solid #e4e0d6;padding:18px;display:flex;flex-direction:column;justify-content:flex-end;gap:10px">
+          <div style="display:flex;align-items:flex-end;gap:3px;height:56px">
+            <span style="flex:1;height:100%;background:#3b3a33"></span><span style="flex:1;height:34%;background:#bdb9ae"></span><span style="flex:1;height:34%;background:#bdb9ae"></span><span style="flex:1;height:100%;background:#3b3a33"></span><span style="flex:1;height:34%;background:#bdb9ae"></span><span style="flex:1;height:100%;background:#3b3a33"></span><span style="flex:1;height:34%;background:#bdb9ae"></span><span style="flex:1;height:34%;background:#bdb9ae"></span><span style="flex:1;height:100%;background:#e2502a"></span><span style="flex:1;height:34%;background:#bdb9ae"></span><span style="flex:1;height:100%;background:#3b3a33"></span><span style="flex:1;height:34%;background:#bdb9ae"></span><span style="flex:1;height:34%;background:#bdb9ae"></span><span style="flex:1;height:100%;background:#3b3a33"></span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font:500 11px 'Geist Mono',monospace;color:#6b685e"><span>2004</span><span>2012</span><span>2026</span></div>
+        </div>
+        <div><div style="font-size:22px;font-weight:600;letter-spacing:-0.02em">See any day</div><div style="color:#55524a;line-height:1.5;margin-top:6px">Drag the timeline to any date and the page appears as it was. Scroll it, click links, read it in full.</div></div>
+      </div>
+      <div style="background:#fff;border:1px solid #d9d5ca;border-radius:16px;padding:28px;display:flex;flex-direction:column;gap:18px">
+        <div style="height:150px;border-radius:10px;background:#f4f2ee;border:1px solid #e4e0d6;padding:18px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div style="background:#fff;border:1px solid #d9d5ca;border-radius:6px;padding:10px;display:flex;flex-direction:column;gap:6px"><span style="font:500 10px 'Geist Mono',monospace;color:#e2502a">MAR 2009</span><span style="height:8px;width:80%;background:#16150f;border-radius:2px"></span><span style="height:5px;width:60%;background:#d0ccc1;border-radius:2px"></span><span style="height:5px;width:70%;background:#d0ccc1;border-radius:2px"></span></div>
+          <div style="background:#fff;border:1px solid #d9d5ca;border-radius:6px;padding:10px;display:flex;flex-direction:column;gap:6px"><span style="font:500 10px 'Geist Mono',monospace;color:#6b685e">SEP 2026</span><span style="height:8px;width:55%;background:#16150f;border-radius:2px"></span><span style="height:5px;width:85%;background:#d0ccc1;border-radius:2px"></span><span style="height:22px;width:50%;background:#e2502a;border-radius:4px;margin-top:4px"></span></div>
+        </div>
+        <div><div style="font-size:22px;font-weight:600;letter-spacing:-0.02em">Compare two dates</div><div style="color:#55524a;line-height:1.5;margin-top:6px">Put an old copy next to a newer one. Spot the new headline, the moved button, the price that went up.</div></div>
+      </div>
+      <div style="background:#fff;border:1px solid #d9d5ca;border-radius:16px;padding:28px;display:flex;flex-direction:column;gap:18px">
+        <div style="height:150px;border-radius:10px;background:#f4f2ee;border:1px solid #e4e0d6;padding:16px 18px;display:flex;flex-direction:column;gap:8px;font:500 12px 'Geist Mono',monospace;color:#3b3a33">
+          <div style="display:flex;justify-content:space-between"><span>/</span><span style="color:#8a877c">Jan 2009</span></div>
+          <div style="display:flex;justify-content:space-between"><span>/products/ipod</span><span style="color:#8a877c">Feb 2009</span></div>
+          <div style="display:flex;justify-content:space-between"><span>/support/downloads</span><span style="color:#8a877c">Feb 2009</span></div>
+          <div style="display:flex;justify-content:space-between"><span>/press/2009/launch</span><span style="color:#8a877c">Jun 2009</span></div>
+          <div style="display:flex;justify-content:space-between;color:#8a877c"><span>+ 212 more</span><span style="color:#e2502a">Export CSV</span></div>
+        </div>
+        <div><div style="font-size:22px;font-weight:600;letter-spacing:-0.02em">List every page a site had</div><div style="color:#55524a;line-height:1.5;margin-top:6px">Pick a year and get every URL on the site back then, like an old sitemap. Download it as a spreadsheet.</div></div>
+      </div>
+      <div style="background:#fff;border:1px solid #d9d5ca;border-radius:16px;padding:28px;display:flex;flex-direction:column;gap:18px">
+        <div style="height:150px;border-radius:10px;background:#f4f2ee;border:1px solid #e4e0d6;padding:16px 18px;display:flex;flex-direction:column;gap:10px;font-size:13px">
+          <div style="display:flex;gap:10px;align-items:center"><span style="width:8px;height:8px;border-radius:50%;background:#e2502a"></span><span style="font-weight:600">Aug 14, 2026</span><span style="color:#6b685e">About 18% more content</span></div>
+          <div style="display:flex;gap:10px;align-items:center"><span style="width:8px;height:8px;border-radius:50%;background:#3b3a33"></span><span style="font-weight:600">May 2, 2026</span><span style="color:#6b685e">About 6% less content</span></div>
+          <div style="display:flex;gap:10px;align-items:center"><span style="width:8px;height:8px;border-radius:50%;background:#3b3a33"></span><span style="font-weight:600">Jan 9, 2026</span><span style="color:#6b685e">About the same size</span></div>
+          <div style="display:flex;gap:10px;align-items:center;color:#8a877c"><span style="width:8px;height:8px;border-radius:50%;border:1px solid #bdb9ae"></span><span>11 copies with no change, skipped</span></div>
+        </div>
+        <div><div style="font-size:22px;font-weight:600;letter-spacing:-0.02em">Know when it changed</div><div style="color:#55524a;line-height:1.5;margin-top:6px">A list of every date the page looked different. Skip all the copies where nothing changed.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section ref="{{ casesRef }}" style="max-width:1180px;margin:0 auto;padding:90px 32px 40px">
+    <div style="font:500 13px 'Geist Mono',monospace;color:#e2502a">WHO IT'S FOR</div>
+    <h2 style="font-size:clamp(32px,4.4vw,56px);letter-spacing:-0.04em;line-height:1;font-weight:600;margin:12px 0 48px;max-width:760px;text-wrap:balance">Made for people who work with websites. And anyone who's curious.</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px">
+      <button onClick="{{ openCopy }}" style="text-align:left;background:#fff;border:1px solid #d9d5ca;border-radius:16px;padding:26px;cursor:pointer;display:flex;flex-direction:column;gap:10px;min-height:220px" style-hover="border-color:#16150f;box-shadow:0 5px 0 #16150f">
+        <span style="font:500 12px 'Geist Mono',monospace;color:#e2502a">COPYWRITERS</span>
+        <span style="font:600 22px/1.2 'Geist',sans-serif;letter-spacing:-0.02em;color:#16150f">Get back old copy and study how rivals rewrote theirs.</span>
+        <span style="flex:1"></span><span style="font:500 14px 'Geist',sans-serif;color:#16150f">See how →</span>
+      </button>
+      <button onClick="{{ openSeo }}" style="text-align:left;background:#fff;border:1px solid #d9d5ca;border-radius:16px;padding:26px;cursor:pointer;display:flex;flex-direction:column;gap:10px;min-height:220px" style-hover="border-color:#16150f;box-shadow:0 5px 0 #16150f">
+        <span style="font:500 12px 'Geist Mono',monospace;color:#e2502a">SEO SPECIALISTS</span>
+        <span style="font:600 22px/1.2 'Geist',sans-serif;letter-spacing:-0.02em;color:#16150f">Find lost URLs and what changed before traffic dropped.</span>
+        <span style="flex:1"></span><span style="font:500 14px 'Geist',sans-serif;color:#16150f">See how →</span>
+      </button>
+      <button onClick="{{ openDev }}" style="text-align:left;background:#fff;border:1px solid #d9d5ca;border-radius:16px;padding:26px;cursor:pointer;display:flex;flex-direction:column;gap:10px;min-height:220px" style-hover="border-color:#16150f;box-shadow:0 5px 0 #16150f">
+        <span style="font:500 12px 'Geist Mono',monospace;color:#e2502a">DEVELOPERS</span>
+        <span style="font:600 22px/1.2 'Geist',sans-serif;letter-spacing:-0.02em;color:#16150f">Pin down the day a page broke and recover lost content.</span>
+        <span style="flex:1"></span><span style="font:500 14px 'Geist',sans-serif;color:#16150f">See how →</span>
+      </button>
+      <button onClick="{{ openAll }}" style="text-align:left;background:#16150f;border:1px solid #16150f;border-radius:16px;padding:26px;cursor:pointer;display:flex;flex-direction:column;gap:10px;min-height:220px" style-hover="box-shadow:0 5px 0 #e2502a">
+        <span style="font:500 12px 'Geist Mono',monospace;color:#e2502a">ANYONE CURIOUS</span>
+        <span style="font:600 22px/1.2 'Geist',sans-serif;letter-spacing:-0.02em;color:#fff">Revisit sites that are gone and the web you remember.</span>
+        <span style="flex:1"></span><span style="font:500 14px 'Geist',sans-serif;color:#fff">See how →</span>
+      </button>
+    </div>
+  </section>
+
+  <section ref="{{ howRef }}" style="max-width:1180px;margin:0 auto;padding:90px 32px 40px">
+    <div style="font:500 13px 'Geist Mono',monospace;color:#e2502a">HOW IT WORKS</div>
+    <h2 style="font-size:clamp(32px,4.4vw,56px);letter-spacing:-0.04em;line-height:1;font-weight:600;margin:12px 0 40px;max-width:760px">Good questions, short answers.</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:32px;border-top:1px solid #d9d5ca;padding-top:32px">
+      <div><div style="font-size:19px;font-weight:600">Where do old pages come from?</div><div style="color:#55524a;line-height:1.55;margin-top:8px">Since 1996, websites have been saved again and again, like photos taken of a page over the years. Backspace finds every photo of the address you type.</div></div>
+      <div><div style="font-size:19px;font-weight:600">Is this the real page?</div><div style="color:#55524a;line-height:1.55;margin-top:8px">Yes. It's the page's actual text and code from that day. Some images or videos may be missing if they weren't saved at the time.</div></div>
+      <div><div style="font-size:19px;font-weight:600">Why are some dates missing?</div><div style="color:#55524a;line-height:1.55;margin-top:8px">Pages aren't saved every day. Popular sites have copies almost weekly. Small sites might have one a year, or none.</div></div>
+    </div>
+  </section>
+
+  <section style="max-width:1180px;margin:0 auto;padding:80px 32px 90px">
+    <div style="background:#16150f;color:#fff;border-radius:22px;padding:clamp(32px,6vw,72px);display:flex;flex-direction:column;gap:22px">
+      <div style="font-size:clamp(32px,4.6vw,60px);font-weight:600;letter-spacing:-0.04em;line-height:1;max-width:720px">Pick a site. Hit backspace.</div>
+      <form onSubmit="{{ onSubmit }}" style="display:flex;gap:8px;flex-wrap:wrap;max-width:640px;background:#fff;border-radius:12px;padding:6px">
+        <input value="{{ input }}" onChange="{{ onInput }}" placeholder="Type a website, like apple.com" style="flex:1;min-width:180px;border:0;outline:none;font:500 18px 'Geist',sans-serif;padding:10px 12px;background:transparent;color:#16150f">
+        <button type="submit" style="border:0;border-radius:8px;background:#e2502a;color:#fff;font:600 16px 'Geist',sans-serif;padding:12px 20px;cursor:pointer">Show its history</button>
+      </form>
+    </div>
+  </section>
+
+  <footer style="border-top:1px solid #d9d5ca;padding:28px 32px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:13px;color:#6b685e">
+    <span style="font-weight:600;color:#16150f">⌫ Backspace</span>
+    <span>See any website the way it used to look.</span>
+  </footer>
+</div>
+</sc-if>
+
+
+<sc-if value="{{ isCase }}">
+<div>
+  <section style="max-width:1180px;margin:0 auto;padding:80px 32px 40px">
+    <div style="font:500 13px 'Geist Mono',monospace;color:#e2502a">{{ caseKicker }}</div>
+    <h1 style="font-size:clamp(40px,6.4vw,80px);letter-spacing:-0.045em;line-height:0.96;font-weight:600;margin:14px 0 0;max-width:900px;text-wrap:balance">{{ caseHeadline }}</h1>
+    <p style="font-size:20px;line-height:1.5;color:#55524a;margin:24px 0 32px;max-width:620px;text-wrap:pretty">{{ caseIntro }}</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button onClick="{{ runExample }}" style="border:0;border-radius:10px;background:#e2502a;color:#fff;font:600 16px 'Geist',sans-serif;padding:14px 20px;cursor:pointer" style-hover="background:#c63f1c">{{ caseExample }} →</button>
+      <button onClick="{{ navTry }}" style="border:1.5px solid #16150f;border-radius:10px;background:#fff;color:#16150f;font:600 16px 'Geist',sans-serif;padding:13px 20px;cursor:pointer">Use my own site</button>
+    </div>
+  </section>
+  <section style="max-width:1180px;margin:0 auto;padding:40px 32px 40px">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px">
+      <sc-for list="{{ caseTasks }}" as="t" hint-placeholder-count="3">
+        <div style="background:#fff;border:1px solid #d9d5ca;border-radius:16px;padding:28px;display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font:500 13px 'Geist Mono',monospace;color:#e2502a">{{ t.num }}</span>
+            <span style="font:500 12px 'Geist',sans-serif;background:#f4f2ee;border:1px solid #e0dcd2;border-radius:999px;padding:4px 10px;color:#55524a">Uses: {{ t.tool }}</span>
+          </div>
+          <div style="font-size:22px;font-weight:600;letter-spacing:-0.02em;line-height:1.2">{{ t.title }}</div>
+          <div style="color:#55524a;line-height:1.55">{{ t.text }}</div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+  <section style="max-width:1180px;margin:0 auto;padding:60px 32px 90px">
+    <div style="font:500 13px 'Geist Mono',monospace;color:#6b685e;margin-bottom:16px">OTHER USE CASES</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px">
+      <sc-for list="{{ otherCases }}" as="o" hint-placeholder-count="3">
+        <button onClick="{{ o.onClick }}" style="text-align:left;background:none;border:1px solid #d9d5ca;border-radius:12px;padding:18px 20px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px" style-hover="border-color:#16150f;background:#fff">
+          <span style="display:flex;flex-direction:column;gap:3px"><span style="font:600 17px 'Geist',sans-serif;color:#16150f">{{ o.title }}</span><span style="font:400 13px 'Geist',sans-serif;color:#6b685e">{{ o.short }}</span></span>
+          <span style="font-size:18px;color:#16150f">→</span>
+        </button>
+      </sc-for>
+    </div>
+  </section>
+  <footer style="border-top:1px solid #d9d5ca;padding:28px 32px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:13px;color:#6b685e">
+    <span style="font-weight:600;color:#16150f">⌫ Backspace</span>
+    <span>See any website the way it used to look.</span>
+  </footer>
+</div>
+</sc-if>
+
+<sc-if value="{{ isLoading }}">
+<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:32px;text-align:center">
+  <span style="display:inline-flex;align-items:center;justify-content:center;width:64px;height:56px;border-radius:12px;background:#16150f;color:#f4f2ee;font-size:28px;box-shadow:0 5px 0 #e2502a">⌫</span>
+  <div style="font-size:28px;font-weight:600;letter-spacing:-0.03em">Looking for saved copies of {{ url }}</div>
+  <div style="color:#6b685e;max-width:440px;line-height:1.5">We're checking every copy saved since 1996. This takes a few seconds.</div>
+  <div style="width:260px;height:4px;border-radius:4px;background:#e2ded4;overflow:hidden">{{ loaderBar }}</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isEmpty }}">
+<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:32px;text-align:center">
+  <div style="font:500 13px 'Geist Mono',monospace;color:#e2502a">NOTHING SAVED YET</div>
+  <div style="font-size:clamp(28px,4vw,44px);font-weight:600;letter-spacing:-0.03em;max-width:640px">There are no saved copies of {{ url }}</div>
+  <div style="color:#55524a;max-width:480px;line-height:1.5">Check the spelling. If you typed a long address, try just the main site, like apple.com instead of apple.com/some/page.</div>
+  <button onClick="{{ goHome }}" style="margin-top:12px;border:0;border-radius:9px;background:#16150f;color:#fff;font:600 16px 'Geist',sans-serif;padding:13px 20px;cursor:pointer">Try another address</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ isResults }}">
+<div style="height:100vh;display:flex;flex-direction:column">
+  <header style="display:flex;align-items:center;gap:16px;padding:10px 20px;border-bottom:1px solid #dcd8cd;background:#f4f2ee;flex-wrap:wrap">
+    <button onClick="{{ goHome }}" style="display:flex;align-items:center;gap:8px;border:0;background:none;font:600 16px 'Geist',sans-serif;color:#16150f;cursor:pointer;padding:0">
+      <span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:25px;border-radius:6px;background:#16150f;color:#f4f2ee;font-size:13px;box-shadow:0 2px 0 #e2502a">⌫</span>Backspace
+    </button>
+    <form onSubmit="{{ onSubmit }}" style="flex:1;min-width:200px;max-width:380px;display:flex;background:#fff;border:1px solid #cfcbc0;border-radius:9px;overflow:hidden">
+      <input value="{{ input }}" onChange="{{ onInput }}" style="flex:1;min-width:0;border:0;outline:none;font:500 14px 'Geist',sans-serif;padding:9px 12px;background:transparent">
+      <button type="submit" style="border:0;background:#16150f;color:#fff;font:500 13px 'Geist',sans-serif;padding:0 14px;cursor:pointer">Search</button>
+    </form>
+    <div style="flex:1"></div>
+    <div style="display:flex;gap:2px;background:#e9e6de;border-radius:10px;padding:3px">
+      <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+        <button onClick="{{ t.onClick }}" style="border:0;border-radius:8px;padding:8px 14px;font:500 14px 'Geist',sans-serif;cursor:pointer;background:{{ t.bg }};color:{{ t.fg }}">{{ t.label }}</button>
+      </sc-for>
+    </div>
+  </header>
+
+  <div style="padding:16px 24px 12px;display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap">
+    <sc-if value="{{ bannerPage }}">
+      <div style="max-width:800px">
+        <div style="font-size:clamp(20px,2.4vw,28px);font-weight:600;letter-spacing:-0.025em;line-height:1.2;text-wrap:pretty">You're looking at <span style="background:#fff;border:1px solid #d3cfc4;border-radius:6px;padding:0 6px">{{ url }}</span> as it looked on <span style="color:#e2502a">{{ curDate }}</span>.</div>
+        <div style="color:#6b685e;font-size:15px;margin-top:6px">That's {{ curAgo }}. {{ changeNote }}</div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ bannerCompare }}">
+      <div style="max-width:860px">
+        <div style="font-size:clamp(20px,2.4vw,28px);font-weight:600;letter-spacing:-0.025em;line-height:1.2;text-wrap:pretty"><span style="color:#e2502a">{{ curDate }}</span> next to <span style="color:#2a6fdb">{{ cmpDate }}</span>.</div>
+        <div style="color:#6b685e;font-size:15px;margin-top:6px">Two copies of {{ url }}. {{ betweenText }}</div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ bannerOther }}">
+      <div style="font-size:clamp(20px,2.4vw,28px);font-weight:600;letter-spacing:-0.025em;line-height:1.2;max-width:860px;text-wrap:pretty">{{ banner }}</div>
+    </sc-if>
+    <sc-if value="{{ tabPage }}"><div style="font:500 13px 'Geist Mono',monospace;color:#6b685e">{{ position }}</div></sc-if>
+    <sc-if value="{{ tabCompare }}">
+      <div style="display:flex;background:#e9e6de;border-radius:8px;padding:3px">
+        <button onClick="{{ setSide }}" style="border:0;border-radius:6px;padding:6px 12px;font:500 13px 'Geist',sans-serif;cursor:pointer;background:{{ sideBg }};color:{{ sideFg }}">Side by side</button>
+        <button onClick="{{ setSwipe }}" style="border:0;border-radius:6px;padding:6px 12px;font:500 13px 'Geist',sans-serif;cursor:pointer;background:{{ swipeBg }};color:{{ swipeFg }}">Swipe</button>
+      </div>
+    </sc-if>
+  </div>
+
+  <div style="flex:1;min-height:0;padding:0 24px;display:flex;flex-direction:column">
+    <sc-if value="{{ tabPage }}">
+      <div style="flex:1;min-height:0;display:flex;flex-direction:column;border:1px solid #cfcbc0;border-radius:12px;overflow:hidden;background:#fff;box-shadow:0 10px 30px -18px rgba(22,21,15,.4)">
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:#ebe8e1;border-bottom:1px solid #d9d5ca">
+          <div style="display:flex;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:#d0ccc1"></span><span style="width:10px;height:10px;border-radius:50%;background:#d0ccc1"></span><span style="width:10px;height:10px;border-radius:50%;background:#d0ccc1"></span></div>
+          <div style="flex:1;text-align:center;color:#55524a;font-family:'Geist Mono',monospace;font-size:12px">{{ url }}</div>
+          <span style="background:#e2502a;color:#fff;border-radius:5px;padding:2px 8px;font:500 12px 'Geist Mono',monospace">{{ curShort }}</span>
+        </div>
+        <div style="flex:1;position:relative;min-height:0">
+          <iframe src="{{ frameSrc }}" onLoad="{{ onFrameLoad }}" title="Saved copy" style="position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff"></iframe>
+          <sc-if value="{{ frameLoading }}">
+            <div style="position:absolute;inset:0;background:rgba(244,242,238,.94);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:24px">
+              <div style="font-size:20px;font-weight:600;letter-spacing:-0.02em">Opening the {{ curDate }} copy</div>
+              <div style="color:#6b685e;font-size:14px;max-width:380px">Old pages can be slow to open. On very old copies, some pictures or links might be missing.</div>
+              <div style="width:200px;height:4px;border-radius:4px;background:#e2ded4;overflow:hidden">{{ loaderBar }}</div>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ tabCompare }}">
+      <sc-if value="{{ isSide }}">
+        <div style="flex:1;min-height:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px">
+          <div style="display:flex;flex-direction:column;border:2px solid #e2502a;border-radius:12px;overflow:hidden;min-height:0;background:#fff">
+            <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:#fbe6df;flex-wrap:wrap">
+              <span style="font:600 12px 'Geist Mono',monospace;color:#e2502a">A</span>
+              <select value="{{ aValue }}" onChange="{{ onPickA }}" style="border:1px solid #e9b7a7;border-radius:6px;background:#fff;font:500 13px 'Geist',sans-serif;padding:4px 6px;max-width:170px">
+                <sc-for list="{{ dateOptions }}" as="o" hint-placeholder-count="0"><option value="{{ o.value }}">{{ o.label }}</option></sc-for>
+              </select>
+              <span style="font-size:12px;color:#8a4a36">{{ curAgo }}</span>
+              <div style="flex:1"></div>
+              <span style="font-size:12px;color:#8a4a36">Timeline below moves this side</span>
+            </div>
+            <div style="flex:1;position:relative;min-height:0">
+              <iframe src="{{ frameSrc }}" onLoad="{{ onALoad }}" title="Copy A" style="position:absolute;inset:0;width:100%;height:100%;border:0"></iframe>
+              <sc-if value="{{ aLoading }}"><div style="position:absolute;inset:0;background:rgba(244,242,238,.94);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;font-size:15px;font-weight:600">Opening {{ curShort }}<div style="width:160px;height:4px;border-radius:4px;background:#e2ded4;overflow:hidden">{{ loaderBar }}</div></div></sc-if>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;border:2px solid #2a6fdb;border-radius:12px;overflow:hidden;min-height:0;background:#fff">
+            <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:#e2ebfa;flex-wrap:wrap">
+              <span style="font:600 12px 'Geist Mono',monospace;color:#2a6fdb">B</span>
+              <select value="{{ bValue }}" onChange="{{ onPickB }}" style="border:1px solid #a9c3ee;border-radius:6px;background:#fff;font:500 13px 'Geist',sans-serif;padding:4px 6px;max-width:170px">
+                <sc-for list="{{ dateOptions }}" as="o" hint-placeholder-count="0"><option value="{{ o.value }}">{{ o.label }}</option></sc-for>
+              </select>
+              <span style="font-size:12px;color:#36558a">{{ cmpAgo }}</span>
+              <div style="flex:1"></div>
+              <button onClick="{{ bPrev }}" style="border:1px solid #a9c3ee;background:#fff;border-radius:6px;padding:4px 8px;font:500 12px 'Geist',sans-serif;cursor:pointer">Copy before A</button>
+              <button onClick="{{ bNewest }}" style="border:1px solid #a9c3ee;background:#fff;border-radius:6px;padding:4px 8px;font:500 12px 'Geist',sans-serif;cursor:pointer">Newest</button>
+              <button onClick="{{ swapSides }}" title="Swap sides" style="border:1px solid #a9c3ee;background:#fff;border-radius:6px;padding:4px 8px;font:500 12px 'Geist',sans-serif;cursor:pointer">⇄</button>
+            </div>
+            <div style="flex:1;position:relative;min-height:0">
+              <iframe src="{{ cmpSrc }}" onLoad="{{ onBLoad }}" title="Copy B" style="position:absolute;inset:0;width:100%;height:100%;border:0"></iframe>
+              <sc-if value="{{ bLoading }}"><div style="position:absolute;inset:0;background:rgba(244,242,238,.94);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;font-size:15px;font-weight:600">Opening {{ cmpShort }}<div style="width:160px;height:4px;border-radius:4px;background:#e2ded4;overflow:hidden">{{ loaderBar }}</div></div></sc-if>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ isSwipe }}">
+        <div ref="{{ swipeRef }}" style="flex:1;min-height:0;position:relative;border:1px solid #cfcbc0;border-radius:12px;overflow:hidden;background:#fff">
+          <iframe src="{{ cmpSrc }}" onLoad="{{ onBLoad }}" title="Copy B" style="position:absolute;inset:0;width:100%;height:100%;border:0;pointer-events:none"></iframe>
+          <iframe src="{{ frameSrc }}" onLoad="{{ onALoad }}" title="Copy A" style="position:absolute;inset:0;width:100%;height:100%;border:0;pointer-events:none;background:#fff;clip-path:inset(0 {{ clipRight }} 0 0)"></iframe>
+          <div style="position:absolute;top:0;bottom:0;left:{{ splitPct }};width:3px;margin-left:-1px;background:#16150f;pointer-events:none"></div>
+          <div style="position:absolute;top:50%;left:{{ splitPct }};transform:translate(-50%,-50%);background:#16150f;color:#fff;border-radius:999px;padding:9px 14px;font:600 13px 'Geist',sans-serif;pointer-events:none;box-shadow:0 6px 20px rgba(0,0,0,.25)">◀ Drag ▶</div>
+          <div style="position:absolute;top:12px;left:12px;background:#e2502a;color:#fff;border-radius:6px;padding:4px 8px;font:500 12px 'Geist Mono',monospace;pointer-events:none">A · {{ curShort }}</div>
+          <div style="position:absolute;top:12px;right:12px;background:#2a6fdb;color:#fff;border-radius:6px;padding:4px 8px;font:500 12px 'Geist Mono',monospace;pointer-events:none">B · {{ cmpShort }}</div>
+          <div onPointerDown="{{ onSwipeDown }}" onPointerMove="{{ onSwipeMove }}" onPointerUp="{{ onSwipeUp }}" style="position:absolute;inset:0;cursor:ew-resize;touch-action:none"></div>
+          <sc-if value="{{ anyLoading }}"><div style="position:absolute;inset:0;background:rgba(244,242,238,.94);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;font-size:15px;font-weight:600">Opening both copies<div style="width:160px;height:4px;border-radius:4px;background:#e2ded4;overflow:hidden">{{ loaderBar }}</div></div></sc-if>
+        </div>
+      </sc-if>
+    </sc-if>
+    <sc-if value="{{ tabPages }}">
+      <div style="flex:1;min-height:0;display:flex;flex-direction:column;border:1px solid #cfcbc0;border-radius:12px;background:#fff;overflow:hidden">
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #e4e0d6;flex-wrap:wrap">
+          <span style="font-size:13px;color:#6b685e">Year</span>
+          <div style="display:flex;gap:4px;flex-wrap:wrap;flex:1;min-width:200px">
+            <sc-for list="{{ pageYears }}" as="y" hint-placeholder-count="10">
+              <button onClick="{{ y.onClick }}" style="border:1px solid #d9d5ca;border-radius:6px;padding:4px 8px;font:500 12px 'Geist Mono',monospace;cursor:pointer;background:{{ y.bg }};color:{{ y.fg }}">{{ y.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid #e4e0d6;background:#faf9f6;flex-wrap:wrap">
+          <input value="{{ pageFilter }}" onChange="{{ onFilter }}" placeholder="Filter, like /blog or pricing" style="flex:1;min-width:180px;max-width:360px;border:1px solid #cfcbc0;border-radius:8px;padding:8px 10px;font:500 14px 'Geist',sans-serif;outline:none;background:#fff">
+          <span style="font-size:13px;color:#6b685e">{{ pagesCount }}</span>
+          <div style="flex:1"></div>
+          <button onClick="{{ exportCsv }}" style="border:1px solid #16150f;background:#fff;border-radius:8px;padding:7px 12px;font:600 13px 'Geist',sans-serif;cursor:pointer" style-hover="background:#16150f;color:#fff">Download as spreadsheet (CSV)</button>
+        </div>
+        <div style="flex:1;overflow:auto;padding:4px 16px 20px">
+          <sc-if value="{{ pagesLoading }}">
+            <div style="padding:60px 0;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center">
+              <div style="font-size:17px;font-weight:600">Finding every page saved in {{ pagesYearLabel }}</div>
+              <div style="width:200px;height:4px;border-radius:4px;background:#e2ded4;overflow:hidden">{{ loaderBar }}</div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ noPages }}">
+            <div style="padding:60px 0;text-align:center;color:#55524a">No pages match that. Try a shorter word, or pick another year.</div>
+          </sc-if>
+          <sc-if value="{{ pagesReady }}">
+            <sc-for list="{{ pageGroups }}" as="g" hint-placeholder-count="0">
+              <div style="margin-top:16px">
+                <div style="display:flex;justify-content:space-between;align-items:baseline;padding:6px 0;border-bottom:1px solid #16150f">
+                  <span style="font:600 14px 'Geist Mono',monospace">{{ g.name }}</span><span style="font-size:12px;color:#6b685e">{{ g.count }}</span>
+                </div>
+                <sc-for list="{{ g.rows }}" as="r" hint-placeholder-count="0">
+                  <div style="display:flex;align-items:center;gap:12px;padding:7px 0;border-bottom:1px solid #eeebe4;font-size:13px" style-hover="background:#faf9f6">
+                    <span style="flex:1;min-width:0;font-family:'Geist Mono',monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.path }}</span>
+                    <span style="color:#8a877c;font-size:12px;white-space:nowrap;flex-shrink:0">first saved {{ r.date }}</span>
+                    <button onClick="{{ r.onView }}" style="border:1px solid #d3cfc4;background:#fff;border-radius:6px;padding:4px 10px;font:500 12px 'Geist',sans-serif;cursor:pointer" style-hover="border-color:#16150f">View history</button>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-for>
+          </sc-if>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ tabChanges }}">
+      <div style="flex:1;min-height:0;overflow:auto;border:1px solid #cfcbc0;border-radius:12px;background:#fff;padding:8px 20px 20px">
+        <div style="font-size:13px;color:#6b685e;padding:10px 0 12px;border-bottom:1px solid #e4e0d6">{{ unchangedText }} Each row is a date the page looked different from the copy before it.</div>
+        <sc-for list="{{ changeList }}" as="c" hint-placeholder-count="6">
+          <div style="display:flex;align-items:center;gap:16px;padding:14px 0;border-bottom:1px solid #eeebe4;flex-wrap:wrap">
+            <span style="width:10px;height:10px;border-radius:50%;background:#e2502a;flex-shrink:0"></span>
+            <div style="flex:1;min-width:220px">
+              <div style="font-weight:600;font-size:16px">{{ c.date }} <span style="font-weight:400;color:#8a877c;font-size:13px">· {{ c.ago }}</span></div>
+              <div style="color:#55524a;font-size:14px;margin-top:2px">{{ c.size }}</div>
+            </div>
+            <button onClick="{{ c.onView }}" style="border:1px solid #d3cfc4;background:#fff;border-radius:8px;padding:7px 12px;font:500 13px 'Geist',sans-serif;cursor:pointer" style-hover="border-color:#16150f">View</button>
+            <sc-if value="{{ c.hasPrev }}"><button onClick="{{ c.onCompare }}" style="border:0;background:#16150f;color:#fff;border-radius:8px;padding:8px 12px;font:500 13px 'Geist',sans-serif;cursor:pointer" style-hover="background:#e2502a">Compare with copy before</button></sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+  </div>
+
+  <sc-if value="{{ showScrubber }}">
+  <div style="padding:12px 24px 16px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
+      <button onClick="{{ older }}" style="border:1px solid #16150f;background:#fff;border-radius:8px;padding:8px 14px;font:600 14px 'Geist',sans-serif;cursor:pointer" style-hover="background:#16150f;color:#fff">← Older</button>
+      <button onClick="{{ newer }}" style="border:1px solid #16150f;background:#fff;border-radius:8px;padding:8px 14px;font:600 14px 'Geist',sans-serif;cursor:pointer" style-hover="background:#16150f;color:#fff">Newer →</button>
+      <label style="display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;margin-left:6px">
+        <input type="checkbox" checked="{{ changesOnly }}" onChange="{{ toggleChanges }}" style="accent-color:#e2502a;width:16px;height:16px">Skip copies where nothing changed
+      </label>
+      <div style="flex:1"></div>
+      <sc-if value="{{ showLegend }}">
+        <div style="display:flex;gap:14px;font-size:12px;color:#6b685e;align-items:center;flex-wrap:wrap">
+          <span style="display:flex;align-items:center;gap:6px"><span style="width:4px;height:14px;background:#3b3a33;border-radius:1px"></span>Tall bar: page changed</span>
+          <span style="display:flex;align-items:center;gap:6px"><span style="width:4px;height:6px;background:#bdb9ae;border-radius:1px"></span>Short bar: looked the same</span>
+          <span style="display:flex;align-items:center;gap:6px"><span style="width:4px;height:14px;background:#e2502a;border-radius:1px"></span>You are here</span>
+          <sc-if value="{{ isCompare }}"><span style="display:flex;align-items:center;gap:6px"><span style="width:4px;height:14px;background:#2a6fdb;border-radius:1px"></span>Copy B</span></sc-if>
+        </div>
+      </sc-if>
+    </div>
+    <div style="position:relative">
+      <sc-if value="{{ tipVisible }}">
+        <div style="position:absolute;bottom:58px;left:{{ tipLeft }};transform:translateX(-50%);background:#16150f;color:#fff;border-radius:6px;padding:5px 9px;font:500 12px 'Geist Mono',monospace;white-space:nowrap;pointer-events:none;z-index:2">{{ tipText }}</div>
+      </sc-if>
+      <div ref="{{ trackRef }}" onPointerDown="{{ onDown }}" onPointerMove="{{ onMove }}" onPointerUp="{{ onUp }}" onPointerLeave="{{ onLeave }}" style="height:52px;display:flex;align-items:flex-end;gap:1px;cursor:pointer;touch-action:none;background:#fff;border:1px solid #d9d5ca;border-radius:8px;padding:6px 6px 0">
+        <sc-for list="{{ bars }}" as="b" hint-placeholder-count="60">
+          <div style="flex:1;min-width:0;height:{{ b.h }};background:{{ b.bg }};border-radius:1px 1px 0 0;pointer-events:none"></div>
+        </sc-for>
+      </div>
+      <div style="position:relative;height:20px;margin:6px 6px 0">
+        <sc-for list="{{ years }}" as="y" hint-placeholder-count="0">
+          <span style="position:absolute;left:{{ y.left }};font:500 11px 'Geist Mono',monospace;color:#6b685e;transform:translateX(-2px)">{{ y.label }}</span>
+        </sc-for>
+      </div>
+    </div>
+    <div style="font-size:12px;color:#8a877c;margin-top:4px">{{ rangeText }}. Tip: use your ← → arrow keys.</div>
+  </div>
+  </sc-if>
+  <sc-if value="{{ hideScrubber }}"><div style="height:16px"></div></sc-if>
+</div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;startAt&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;newest&quot;,&quot;oldest&quot;],&quot;default&quot;:&quot;newest&quot;,&quot;tsType&quot;:&quot;'newest'|'oldest'&quot;},&quot;showLegend&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+const CASES = {
+  copy: {
+    title: 'Copywriters', short: 'Old copy, rival messaging, launch dates', kicker: 'FOR COPYWRITERS',
+    headline: 'See how any headline, offer or page has changed.',
+    intro: 'Words on the web get rewritten all the time. Read every old version of a page, so you can get back copy you lost or see how others found the words that worked.',
+    tasks: [
+      ['Get back copy you overwrote', 'You rewrote the homepage last spring and want the old wording. Drag back to that month and copy it out.', 'Page view'],
+      ["Study a rival's messaging", 'Put two dates side by side and see exactly how their headline, pricing line or button text changed.', 'Compare'],
+      ['Find the day a change went live', 'The change list shows every date the page looked different, so you know when a new line first appeared.', 'Changes'],
+    ],
+    example: { label: "Compare apple.com's homepage over time", url: 'apple.com', tab: 'compare' },
+  },
+  seo: {
+    title: 'SEO specialists', short: 'Lost URLs, redirects, ranking drops', kicker: 'FOR SEO SPECIALISTS',
+    headline: 'Find lost pages, old URLs and what changed before traffic dropped.',
+    intro: 'When rankings move, the first question is what changed. See the page, and the whole site, exactly as it was on any date.',
+    tasks: [
+      ['List every URL a site had', 'Pick a year and see all the pages that existed. Export the list to plan redirects after a migration.', 'All pages'],
+      ['Check a page before a drop', 'Jump to the weeks before traffic fell and put the old page next to the current one.', 'Compare'],
+      ['Check a domain before you buy it', 'See what an expired or for-sale domain used to host, year by year.', 'Page view'],
+    ],
+    example: { label: 'See every page nytimes.com had', url: 'nytimes.com', tab: 'pages' },
+  },
+  dev: {
+    title: 'Developers', short: 'Regressions, migrations, lost assets', kicker: 'FOR DEVELOPERS',
+    headline: 'See how a site was built, and the day it broke.',
+    intro: "Old builds, lost content and pages nobody remembers shipping. Open any of them and click around like they're live.",
+    tasks: [
+      ['Track down a regression', 'Step through copies one at a time until the layout breaks. Now you have a date to search your commits.', 'Page view'],
+      ['Recover content after a rebuild', 'Pages missing after a migration? List the old URLs and open each one to see what was there.', 'All pages'],
+      ['Skip to what changed', 'Hide the copies where nothing changed and land right on the ones that matter.', 'Changes'],
+    ],
+    example: { label: 'Step through wikipedia.org changes', url: 'wikipedia.org', tab: 'changes' },
+  },
+  all: {
+    title: 'Anyone curious', short: 'Gone sites, old favorites, proof', kicker: 'FOR ANYONE CURIOUS',
+    headline: 'Look at the web the way you remember it.',
+    intro: 'Your first blog, a shop that closed, the site you checked every day after school. If it was saved, you can see it again.',
+    tasks: [
+      ['Visit sites that are gone', 'Even if a website shut down years ago, its old pages may still be here.', 'Page view'],
+      ['Show what a page said', 'Show someone exactly how a page looked on a certain day, with the date right on screen.', 'Page view'],
+      ['Watch a site grow up', 'Drag from the first copy to today and watch years of design go by.', 'Page view'],
+    ],
+    example: { label: 'Open the 1996 Space Jam site', url: 'spacejam.com', tab: 'page', start: 'oldest' },
+  },
+};
+const TABS = [['page', 'Page'], ['compare', 'Compare'], ['pages', 'All pages'], ['changes', 'Changes']];
+
+class Component extends DCLogic {
+  state = { view: 'home', caseId: null, menu: false, input: '', url: '', snaps: [], idx: 0, hover: null, frameLoading: false, error: '', changesOnly: false, tab: 'page', cmpIdx: null, cmpMode: 'side', aLoading: false, bLoading: false, split: 50, pagesYear: null, pages: [], pagesLoading: false, pageFilter: '' };
+  trackRef = React.createRef(); swipeRef = React.createRef(); featuresRef = React.createRef(); casesRef = React.createRef(); howRef = React.createRef(); heroInputRef = React.createRef();
+  componentDidMount() {
+    this.onKey = (e) => {
+      if (this.state.view !== 'results' || !['page', 'compare'].includes(this.state.tab)) return;
+      const t = e.target.tagName;
+      if (t === 'INPUT' || t === 'TEXTAREA' || t === 'SELECT') return;
+      if (e.key === 'ArrowLeft' || e.key === 'Backspace') { e.preventDefault(); this.step(-1); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); this.step(1); }
+    };
+    this.onDocClick = (e) => { if (this.state.menu && !e.target.closest('nav')) this.setState({ menu: false }); };
+    window.addEventListener('keydown', this.onKey);
+    document.addEventListener('click', this.onDocClick);
+  }
+  componentWillUnmount() { window.removeEventListener('keydown', this.onKey); document.removeEventListener('click', this.onDocClick); clearTimeout(this.ft); }
+  async go(raw, tab = 'page', start) {
+    const B = window.Backspace;
+    const url = B.normalize(raw);
+    if (!url) { this.setState({ error: "That doesn't look like a web address. Try something like apple.com" }); return; }
+    this.setState({ view: 'loading', url, input: url, error: '', menu: false, pages: [], pagesYear: null, cmpIdx: null, pageFilter: '' });
+    window.scrollTo(0, 0);
+    const res = await B.fetchSnapshots(url);
+    if (this.state.url !== url) return;
+    if (!res.snaps.length) { this.setState({ view: 'empty' }); return; }
+    const n = res.snaps.length;
+    const idx = (start || this.props.startAt) === 'oldest' ? 0 : n - 1;
+    this.setState({ view: 'results', snaps: res.snaps, hover: null, idx }, () => this.setTab(tab));
+  }
+  setTab(tab) {
+    const s = this.state;
+    const patch = { tab };
+    if (tab === 'page') patch.frameLoading = true;
+    if (tab === 'compare') {
+      patch.aLoading = true; patch.bLoading = true;
+      if (s.idx === s.snaps.length - 1 && s.cmpIdx == null) { const prev = this.findChange(s.idx, -1); patch.idx = prev; }
+    }
+    this.setState(patch);
+    if (tab === 'pages' && s.pagesYear == null) this.loadPages(s.snaps[s.idx].year);
+  }
+  findChange(i, d) {
+    const { snaps } = this.state;
+    let j = i + d;
+    while (j > 0 && j < snaps.length - 1 && !snaps[j].changed) j += d;
+    return Math.max(0, Math.min(snaps.length - 1, j));
+  }
+  async loadPages(year) {
+    this.setState({ pagesLoading: true, pagesYear: year });
+    const list = await window.Backspace.fetchPages(this.state.url, year);
+    if (this.state.pagesYear === year) this.setState({ pages: list, pagesLoading: false });
+  }
+  select(i) {
+    clearTimeout(this.ft);
+    if (i === this.state.idx) return;
+    this.setState({ idx: i, frameLoading: true, aLoading: true });
+    this.ft = setTimeout(() => this.setState({ frameLoading: false, aLoading: false }), 25000);
+  }
+  step(d) {
+    const { snaps, idx, changesOnly } = this.state;
+    let i = idx + d;
+    if (changesOnly) while (i >= 0 && i < snaps.length && !snaps[i].changed) i += d;
+    if (i < 0 || i >= snaps.length) return;
+    this.select(i);
+  }
+  idxFromX(x) {
+    const el = this.trackRef.current;
+    if (!el) return 0;
+    const r = el.getBoundingClientRect();
+    return Math.floor(Math.min(0.9999, Math.max(0, (x - r.left - 6) / (r.width - 12))) * this.state.snaps.length);
+  }
+  setSplit(x) {
+    const el = this.swipeRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    this.setState({ split: Math.max(2, Math.min(98, ((x - r.left) / r.width) * 100)) });
+  }
+  scrollTo(ref) {
+    const run = () => requestAnimationFrame(() => { const el = ref.current; if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 64, behavior: 'smooth' }); });
+    if (this.state.view !== 'home') this.setState({ view: 'home', menu: false }, run); else { this.setState({ menu: false }); run(); }
+  }
+  openCase(id) { this.setState({ view: 'usecase', caseId: id, menu: false }); window.scrollTo(0, 0); }
+  renderVals() {
+    const B = window.Backspace;
+    const s = this.state;
+    const n = s.snaps.length;
+    const cur = s.snaps[s.idx];
+    const showI = s.hover != null ? s.hover : s.idx;
+    const show = s.snaps[showI];
+    const cmpI = s.cmpIdx != null ? s.cmpIdx : n - 1;
+    const cmp = s.snaps[cmpI];
+    const bars = s.snaps.map((sn, i) => ({
+      h: sn.changed ? '100%' : '34%',
+      bg: i === s.idx ? '#e2502a' : (s.tab === 'compare' && i === cmpI) ? '#2a6fdb' : i === s.hover ? '#16150f' : sn.changed ? '#3b3a33' : (s.changesOnly ? '#e4e1d8' : '#bdb9ae'),
+    }));
+    let years = [];
+    let last = null;
+    s.snaps.forEach((sn, i) => { if (sn.year !== last) { years.push({ year: sn.year, label: String(sn.year), left: (i / Math.max(n, 1) * 100) + '%' }); last = sn.year; } });
+    const yearChipsSrc = years.slice();
+    const every = years.length > 24 ? 4 : years.length > 12 ? 2 : 1;
+    years = years.filter((y, i) => i === 0 || y.year % every === 0);
+    for (let i = years.length - 1; i > 0; i--) if (parseFloat(years[i].left) - parseFloat(years[i - 1].left) < 5) years.splice(i, 1);
+    const changeNote = !cur ? '' : cur.i === 0 ? 'This is the oldest copy there is.' : cur.changed ? 'The page looked different from the copy before it.' : 'It looked the same as the copy before it.';
+    const lo = Math.min(s.idx, cmpI), hi = Math.max(s.idx, cmpI);
+    const between = s.snaps.slice(lo + 1, hi + 1).filter((x) => x.changed).length;
+    const dateOptions = s.snaps.map((sn) => ({ value: String(sn.i), label: B.fmtShort(sn.ts) + (sn.changed ? ' ·' : '') }));
+    const q = s.pageFilter.trim().toLowerCase();
+    const filtered = s.pages.filter((p) => !q || p.path.toLowerCase().includes(q));
+    const gmap = new Map();
+    filtered.forEach((p) => { const seg = p.path === '/' || p.path.split('/').length < 3 ? 'Main pages' : '/' + p.path.split('/')[1]; if (!gmap.has(seg)) gmap.set(seg, []); gmap.get(seg).push(p); });
+    const pageGroups = [...gmap.entries()].sort((a, b) => (a[0] === 'Main pages' ? -1 : b[0] === 'Main pages' ? 1 : b[1].length - a[1].length)).map(([name, list]) => ({
+      name, count: B.plural(list.length, 'page', 'pages'),
+      rows: list.slice(0, 80).map((p) => ({ path: p.path, date: B.fmtShort(p.ts), onView: () => this.go(this.state.url.split('/')[0] + (p.path === '/' ? '' : p.path), 'page') })),
+    }));
+    const changeList = s.snaps.filter((x) => x.changed).reverse().map((sn) => {
+      const prev = s.snaps[sn.i - 1];
+      let size = 'The first copy we have';
+      if (prev && prev.length && sn.length) {
+        const pct = Math.round(((sn.length - prev.length) / prev.length) * 100);
+        size = Math.abs(pct) < 3 ? 'About the same amount of content' : `About ${Math.abs(pct)}% ${pct > 0 ? 'more' : 'less'} content than before`;
+      } else if (prev) size = 'Looked different from the copy before';
+      return {
+        date: B.fmt(sn.ts), ago: B.ago(sn.ts), size, isUp: true, hasPrev: !!prev,
+        onView: () => { this.setState({ idx: sn.i, tab: 'page', frameLoading: true }); },
+        onCompare: () => { this.setState({ idx: sn.i, cmpIdx: Math.max(0, sn.i - 1), tab: 'compare', aLoading: true, bLoading: true, cmpMode: 'side' }); },
+      };
+    });
+    const unchanged = n - s.snaps.filter((x) => x.changed).length;
+    const c = CASES[s.caseId] || CASES.copy;
+    const cmpMode = s.cmpMode;
+    let banner = '';
+    if (cur) {
+      if (s.tab === 'pages') banner = `These are the pages on ${s.url.split('/')[0]} that were saved in ${s.pagesYear || cur.year}.`;
+      else if (s.tab === 'changes') banner = `${s.url} changed ${B.plural(n - unchanged, 'time', 'times')}. Here's each one, newest first.`;
+    }
+    return {
+      showNav: s.view === 'home' || s.view === 'usecase',
+      isHome: s.view === 'home', isCase: s.view === 'usecase', isLoading: s.view === 'loading', isEmpty: s.view === 'empty', isResults: s.view === 'results',
+      input: s.input, url: s.url, host: s.url.split('/')[0], error: s.error, hasError: !!s.error,
+      featuresRef: this.featuresRef, casesRef: this.casesRef, howRef: this.howRef, heroInputRef: this.heroInputRef,
+      menuOpen: s.menu, toggleMenu: () => this.setState({ menu: !s.menu }),
+      caseLinks: Object.keys(CASES).map((k) => ({ title: CASES[k].title, short: CASES[k].short, onClick: () => this.openCase(k) })),
+      navFeatures: () => this.scrollTo(this.featuresRef), navHow: () => this.scrollTo(this.howRef),
+      navTry: () => { const f = () => { window.scrollTo({ top: 0, behavior: 'smooth' }); setTimeout(() => this.heroInputRef.current && this.heroInputRef.current.focus(), 300); }; if (s.view !== 'home') this.setState({ view: 'home', menu: false }, f); else f(); },
+      openCopy: () => this.openCase('copy'), openSeo: () => this.openCase('seo'), openDev: () => this.openCase('dev'), openAll: () => this.openCase('all'),
+      caseKicker: c.kicker, caseHeadline: c.headline, caseIntro: c.intro, caseExample: c.example.label,
+      caseTasks: c.tasks.map(([title, text, tool], i) => ({ num: '0' + (i + 1), title, text, tool })),
+      runExample: () => this.go(c.example.url, c.example.tab, c.example.start),
+      otherCases: Object.keys(CASES).filter((k) => k !== s.caseId).map((k) => ({ title: CASES[k].title, short: CASES[k].short, onClick: () => this.openCase(k) })),
+      examples: (B ? B.examples : []).map((x) => ({ label: x, onClick: () => this.go(x) })),
+      onSubmit: (e) => { e.preventDefault(); this.go(this.state.input, this.state.view === 'results' ? this.state.tab : 'page'); },
+      onInput: (e) => this.setState({ input: e.target.value, error: '' }),
+      goHome: () => { this.setState({ view: 'home', url: '', error: '', menu: false }); window.scrollTo(0, 0); },
+      loaderBar: React.createElement('div', { style: { width: '40%', height: '100%', background: '#e2502a', borderRadius: 4, animation: 'bs-slide 1.1s ease-in-out infinite' } }),
+      tabs: TABS.map(([id, label]) => ({ label, onClick: () => this.setTab(id), bg: s.tab === id ? '#16150f' : 'transparent', fg: s.tab === id ? '#fff' : '#55524a' })),
+      tabPage: s.tab === 'page', tabCompare: s.tab === 'compare', tabPages: s.tab === 'pages', tabChanges: s.tab === 'changes',
+      showScrubber: s.tab === 'page' || s.tab === 'compare', hideScrubber: s.tab === 'pages' || s.tab === 'changes',
+      bannerPage: s.tab === 'page', bannerCompare: s.tab === 'compare', bannerOther: s.tab === 'pages' || s.tab === 'changes', banner,
+      curDate: cur ? B.fmt(cur.ts) : '', curShort: cur ? B.fmtShort(cur.ts) : '', curAgo: cur ? B.ago(cur.ts) : '',
+      cmpDate: cmp ? B.fmt(cmp.ts) : '', cmpShort: cmp ? B.fmtShort(cmp.ts) : '', cmpAgo: cmp ? B.ago(cmp.ts) : '',
+      betweenText: s.idx === cmpI ? 'Pick two different dates to compare.' : between === 0 ? 'Nothing changed between these two copies.' : `The page changed ${B.plural(between, 'time', 'times')} between them.`,
+      changeNote, position: cur ? `Copy ${s.idx + 1} of ${n}` : '',
+      frameSrc: cur ? B.frameUrl(s.url, cur.ts) : 'about:blank', cmpSrc: cmp ? B.frameUrl(s.url, cmp.ts) : 'about:blank',
+      frameLoading: s.frameLoading, aLoading: s.aLoading, bLoading: s.bLoading, anyLoading: s.aLoading || s.bLoading,
+      onFrameLoad: () => { clearTimeout(this.ft); this.setState({ frameLoading: false }); },
+      onALoad: () => this.setState({ aLoading: false }), onBLoad: () => this.setState({ bLoading: false }),
+      dateOptions, aValue: String(s.idx), bValue: String(cmpI),
+      onPickA: (e) => this.select(+e.target.value), onPickB: (e) => this.setState({ cmpIdx: +e.target.value, bLoading: true }),
+      bPrev: () => this.setState({ cmpIdx: Math.max(0, s.idx - 1), bLoading: true }), bNewest: () => this.setState({ cmpIdx: n - 1, bLoading: true }),
+      swapSides: () => this.setState({ idx: cmpI, cmpIdx: s.idx, aLoading: true, bLoading: true }),
+      isSide: cmpMode === 'side', isSwipe: cmpMode === 'swipe',
+      sideBg: cmpMode === 'side' ? '#16150f' : 'transparent', sideFg: cmpMode === 'side' ? '#fff' : '#55524a',
+      swipeBg: cmpMode === 'swipe' ? '#16150f' : 'transparent', swipeFg: cmpMode === 'swipe' ? '#fff' : '#55524a',
+      setSide: () => cmpMode !== 'side' && this.setState({ cmpMode: 'side', aLoading: true, bLoading: true }),
+      setSwipe: () => cmpMode !== 'swipe' && this.setState({ cmpMode: 'swipe', aLoading: true, bLoading: true }),
+      swipeRef: this.swipeRef, splitPct: s.split + '%', clipRight: (100 - s.split) + '%',
+      onSwipeDown: (e) => { e.currentTarget.setPointerCapture(e.pointerId); this.sw = true; this.setSplit(e.clientX); },
+      onSwipeMove: (e) => { if (this.sw) this.setSplit(e.clientX); }, onSwipeUp: () => { this.sw = false; },
+      older: () => this.step(-1), newer: () => this.step(1),
+      changesOnly: s.changesOnly, toggleChanges: () => this.setState({ changesOnly: !s.changesOnly }),
+      showLegend: this.props.showLegend ?? true, isCompare: s.tab === 'compare',
+      bars, years, trackRef: this.trackRef,
+      tipVisible: s.hover != null && !!show, tipLeft: ((showI + 0.5) / Math.max(n, 1) * 100) + '%',
+      tipText: show ? `${B.fmtShort(show.ts)}${show.changed ? ' · changed' : ''}` : '',
+      rangeText: n ? `${n} saved copies, from ${s.snaps[0].year} to ${s.snaps[n - 1].year}` : '',
+      onDown: (e) => { e.currentTarget.setPointerCapture(e.pointerId); this.drag = true; this.setState({ hover: this.idxFromX(e.clientX) }); },
+      onMove: (e) => { const h = this.idxFromX(e.clientX); if (h !== this.state.hover) this.setState({ hover: h }); },
+      onUp: (e) => { if (this.drag) { this.drag = false; this.select(this.idxFromX(e.clientX)); } },
+      onLeave: () => { if (!this.drag) this.setState({ hover: null }); },
+      pageYears: yearChipsSrc.map((y) => ({ label: y.label, onClick: () => this.loadPages(y.year), bg: s.pagesYear === y.year ? '#16150f' : '#fff', fg: s.pagesYear === y.year ? '#fff' : '#16150f' })),
+      pagesYearLabel: String(s.pagesYear || ''), pagesLoading: s.pagesLoading, pagesReady: !s.pagesLoading,
+      pageFilter: s.pageFilter, onFilter: (e) => this.setState({ pageFilter: e.target.value }),
+      pageGroups, pagesCount: B ? B.plural(filtered.length, 'page', 'pages') : '', noPages: !s.pagesLoading && filtered.length === 0,
+      exportCsv: () => B.downloadCsv(`${s.url.split('/')[0]}-pages-${s.pagesYear}.csv`, [['url', 'first saved'], ...filtered.map((p) => [s.url.split('/')[0] + p.path, B.fmt(p.ts)])]),
+      changeList, unchangedText: `${B.plural(unchanged, 'copy', 'copies')} where nothing changed are hidden from this list.`,
+    };
+  }
+}
+
+</script>
+</body>
+</html>
