@@ -33,24 +33,29 @@ export interface PagesResult {
   pages: SitePage[];
 }
 
-// Same-origin proxy (api/cdx.ts on Vercel, vite.config.ts in dev).
-const CDX = '/api/cdx';
+// Lookups go to our same-origin proxy first (api/cdx.ts on Vercel, vite.config.ts in
+// dev), then straight to the archive from the browser, before falling back to samples.
+const SOURCES = [
+  { base: '/api/cdx', timeout: 35000 },
+  { base: 'https://web.archive.org/cdx/search/cdx', timeout: 20000 },
+];
 
 const snapCache = new Map<string, SnapResult>();
 const pageCache = new Map<string, PagesResult>();
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-async function fetchJson(api: string): Promise<unknown> {
-  const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), 30000);
-  try {
-    const r = await fetch(api, { signal: ctrl.signal });
-    if (!r.ok) throw new Error('bad');
-    return await r.json();
-  } finally {
-    clearTimeout(t);
+async function fetchJson(query: string): Promise<unknown> {
+  for (const { base, timeout } of SOURCES) {
+    try {
+      const r = await fetch(`${base}?${query}`, { signal: AbortSignal.timeout(timeout) });
+      if (!r.ok) throw new Error(`${r.status} ${(await r.text()).slice(0, 300)}`);
+      return await r.json();
+    } catch (e) {
+      console.warn(`[backspace] lookup via ${base} failed:`, e);
+    }
   }
+  throw new Error('all lookups failed');
 }
 
 export function normalize(input: string): string | null {
@@ -110,7 +115,7 @@ export function sample(url: string): RawSnap[] {
 export async function fetchSnapshots(url: string): Promise<SnapResult> {
   const hit = snapCache.get(url);
   if (hit) return hit;
-  const api = `${CDX}?url=${encodeURIComponent(url)}&output=json&fl=timestamp,digest,length&filter=statuscode:200&collapse=timestamp:6`;
+  const api = `url=${encodeURIComponent(url)}&output=json&fl=timestamp,digest,length&filter=statuscode:200&collapse=timestamp:6`;
   let res: SnapResult;
   try {
     const rows = (await fetchJson(api)) as string[][] | null;
@@ -174,7 +179,7 @@ export async function fetchPages(url: string, year: number): Promise<PagesResult
   const key = `${host}:${year}`;
   const hit = pageCache.get(key);
   if (hit) return hit;
-  const api = `${CDX}?url=${encodeURIComponent(host)}/*&output=json&fl=original,timestamp&collapse=urlkey&filter=statuscode:200&filter=mimetype:text/html&from=${year}&to=${year}&limit=500`;
+  const api = `url=${encodeURIComponent(host)}/*&output=json&fl=original,timestamp&collapse=urlkey&filter=statuscode:200&filter=mimetype:text/html&from=${year}&to=${year}&limit=500`;
   let list: SitePage[];
   let source: PagesResult['source'] = 'live';
   try {
