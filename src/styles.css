@@ -289,6 +289,19 @@ button { cursor: pointer; }
 .pages-tools .count { font-size: 13px; color: var(--text-3); }
 .btn-csv { border: 1px solid var(--ink); background: #fff; border-radius: 8px; padding: 7px 12px; font: 600 13px var(--sans); color: var(--ink); }
 .btn-csv:hover { background: var(--ink); color: #fff; }
+.sections { padding: 10px 16px; border-bottom: 1px solid var(--line-soft); display: flex; flex-direction: column; gap: 8px; }
+.sections-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.sections-row--sub { padding-left: 12px; border-left: 2px solid var(--line); }
+.sections-label { font-size: 13px; color: var(--text-3); margin-right: 4px; }
+.section-chip { border: 1px solid var(--line); border-radius: 999px; padding: 5px 11px; font: 500 13px var(--mono); background: #fff; color: var(--ink); display: inline-flex; align-items: center; gap: 6px; }
+.section-chip:hover { border-color: var(--ink); }
+.section-chip i { font-style: normal; font: 500 11px var(--sans); color: var(--text-3); background: var(--paper); border-radius: 999px; padding: 1px 6px; }
+.section-chip.on { background: var(--ink); border-color: var(--ink); color: #fff; }
+.section-chip.on i { background: rgba(255, 255, 255, .16); color: #fff; }
+.section-more, .clear-filters, .pages-more button { border: 0; background: none; color: var(--accent); font: 600 13px var(--sans); padding: 4px 6px; }
+.section-more:hover, .clear-filters:hover, .pages-more button:hover { text-decoration: underline; }
+.pages-more { padding: 10px 0; font-size: 13px; color: var(--text-3); }
+
 .pages-list { flex: 1; overflow: auto; padding: 4px 16px 20px; }
 .pages-msg { padding: 60px 0; display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; color: var(--text-2); }
 .pages-msg b { font-size: 17px; font-weight: 600; color: var(--ink); }

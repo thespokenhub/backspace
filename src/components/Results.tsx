@@ -172,12 +172,18 @@ export function Results({ url, snaps, source, initial, startAt, showLegend, onHo
             }}
             aria-label="Website address"
             aria-invalid={invalid}
+            list={pages.length ? 'bs-site-pages' : undefined}
             title={invalid ? "That doesn't look like a web address. Try something like apple.com" : undefined}
             autoCapitalize="off"
             autoCorrect="off"
             spellCheck={false}
           />
           <button type="submit">Search</button>
+          {pages.length > 0 && (
+            <datalist id="bs-site-pages">
+              {pages.slice(0, 300).map((p) => <option key={p.path} value={host + (p.path === '/' ? '' : p.path)} />)}
+            </datalist>
+          )}
         </form>
         <div className="spacer" />
         <ShareButton />

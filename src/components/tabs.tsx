@@ -160,21 +160,76 @@ interface PagesProps {
   onExport: (rows: SitePage[]) => void;
 }
 
+const MAIN = 'Main pages';
+const SECTIONS_SHOWN = 10;
+
+// "/blog/2009/launch" -> "/blog"; one-level pages like "/about" are main pages.
+const sectionOf = (path: string) => (path === '/' || path.split('/').length < 3 ? MAIN : '/' + path.split('/')[1]);
+// "/blog/2009/launch" -> "/blog/2009"; null when there is no deeper level.
+const subOf = (path: string) => {
+  const parts = path.split('/');
+  return parts.length >= 4 ? `/${parts[1]}/${parts[2]}` : null;
+};
+
+function countBy<T>(items: T[], key: (t: T) => string | null) {
+  const m = new Map<string, number>();
+  items.forEach((t) => {
+    const k = key(t);
+    if (k) m.set(k, (m.get(k) || 0) + 1);
+  });
+  return m;
+}
+
 export function PagesView({ years, year, pages, loading, filter, setFilter, onYear, onView, onExport }: PagesProps) {
+  const [section, setSection] = useState<string | null>(null);
+  const [sub, setSub] = useState<string | null>(null);
+  const [showAll, setShowAll] = useState(false);
+
+  // Sections come from the pages the site actually had that year, biggest first.
+  const sections = useMemo(() => {
+    const counts = [...countBy(pages, (p) => sectionOf(p.path)).entries()];
+    return counts.sort((a, b) => (a[0] === MAIN ? -1 : b[0] === MAIN ? 1 : b[1] - a[1] || a[0].localeCompare(b[0])));
+  }, [pages]);
+
+  // A picked section may not exist in another year; treat it as cleared.
+  const activeSection = section && sections.some(([name]) => name === section) ? section : null;
+  const inSection = useMemo(() => (activeSection ? pages.filter((p) => sectionOf(p.path) === activeSection) : pages), [pages, activeSection]);
+
+  const subs = useMemo(() => {
+    if (!activeSection || activeSection === MAIN) return [];
+    const counts = [...countBy(inSection, (p) => subOf(p.path)).entries()];
+    return counts.length > 1 ? counts.sort((a, b) => a[0].localeCompare(b[0])) : [];
+  }, [inSection, activeSection]);
+  const activeSub = sub && subs.some(([name]) => name === sub) ? sub : null;
+
   const filtered = useMemo(() => {
     const q = filter.trim().toLowerCase();
-    return pages.filter((p) => !q || p.path.toLowerCase().includes(q));
-  }, [pages, filter]);
+    return inSection.filter((p) => (!activeSub || p.path.startsWith(activeSub + '/')) && (!q || p.path.toLowerCase().includes(q)));
+  }, [inSection, activeSub, filter]);
 
   const groups = useMemo(() => {
     const gmap = new Map<string, SitePage[]>();
     filtered.forEach((p) => {
-      const seg = p.path === '/' || p.path.split('/').length < 3 ? 'Main pages' : '/' + p.path.split('/')[1];
+      const seg = sectionOf(p.path);
       if (!gmap.has(seg)) gmap.set(seg, []);
       gmap.get(seg)!.push(p);
     });
-    return [...gmap.entries()].sort((a, b) => (a[0] === 'Main pages' ? -1 : b[0] === 'Main pages' ? 1 : b[1].length - a[1].length));
+    return [...gmap.entries()].sort((a, b) => (a[0] === MAIN ? -1 : b[0] === MAIN ? 1 : b[1].length - a[1].length));
   }, [filtered]);
+
+  const pickSection = (name: string | null) => {
+    setSection(name === activeSection ? null : name);
+    setSub(null);
+  };
+  const clearAll = () => {
+    setSection(null);
+    setSub(null);
+    setFilter('');
+  };
+  const anyFilter = !!(activeSection || filter.trim());
+  const shown = showAll ? [...sections] : sections.slice(0, SECTIONS_SHOWN);
+  // Keep the picked section visible even when it's past the fold.
+  if (activeSection && !shown.some(([n]) => n === activeSection)) shown.push(sections.find(([n]) => n === activeSection)!);
 
   return (
     <div className="panel">
@@ -186,9 +241,50 @@ export function PagesView({ years, year, pages, loading, filter, setFilter, onYe
           ))}
         </div>
       </div>
+      {!loading && pages.length > 0 && (
+        <div className="sections">
+          <div className="sections-row">
+            <span className="sections-label">Sections</span>
+            <button type="button" className={!activeSection ? 'section-chip on' : 'section-chip'} aria-pressed={!activeSection} onClick={() => pickSection(null)}>
+              All <i>{pages.length}</i>
+            </button>
+            {shown.map(([name, count]) => (
+              <button type="button" key={name} className={name === activeSection ? 'section-chip on' : 'section-chip'} aria-pressed={name === activeSection} onClick={() => pickSection(name)}>
+                {name} <i>{count}</i>
+              </button>
+            ))}
+            {sections.length > SECTIONS_SHOWN && (
+              <button type="button" className="section-more" onClick={() => setShowAll(!showAll)}>
+                {showAll ? 'Show fewer' : `+${sections.length - SECTIONS_SHOWN} more`}
+              </button>
+            )}
+          </div>
+          {subs.length > 0 && (
+            <div className="sections-row sections-row--sub">
+              <span className="sections-label">Inside {activeSection}</span>
+              {subs.map(([name, count]) => (
+                <button type="button" key={name} className={name === activeSub ? 'section-chip on' : 'section-chip'} aria-pressed={name === activeSub} onClick={() => setSub(name === activeSub ? null : name)}>
+                  {name.slice(activeSection!.length)} <i>{count}</i>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
       <div className="pages-tools">
-        <input value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Filter, like /blog or pricing" aria-label="Filter pages" />
+        <input
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          placeholder={activeSection && activeSection !== MAIN ? `Search inside ${activeSection}` : 'Search pages, like /blog or pricing'}
+          aria-label="Search pages"
+          list="bs-page-suggestions"
+          type="search"
+        />
+        <datalist id="bs-page-suggestions">
+          {inSection.slice(0, 300).map((p) => <option key={p.path} value={p.path} />)}
+        </datalist>
         <span className="count">{plural(filtered.length, 'page', 'pages')}</span>
+        {anyFilter && <button type="button" className="clear-filters" onClick={clearAll}>Clear filters</button>}
         <div className="spacer" />
         <button type="button" className="btn-csv" onClick={() => onExport(filtered)}>Download as spreadsheet (CSV)</button>
       </div>
@@ -199,7 +295,16 @@ export function PagesView({ years, year, pages, loading, filter, setFilter, onYe
             <LoaderBar size="md" />
           </div>
         ) : filtered.length === 0 ? (
-          <div className="pages-msg">No pages match that. Try a shorter word, or pick another year.</div>
+          <div className="pages-msg">
+            {anyFilter ? (
+              <>
+                No pages match that{activeSection ? ` in ${activeSection}` : ''}. Try a shorter word, or pick another year.
+                <button type="button" className="clear-filters" onClick={clearAll}>Clear filters</button>
+              </>
+            ) : (
+              'No pages were saved that year. Pick another year.'
+            )}
+          </div>
         ) : (
           groups.map(([name, list]) => (
             <div className="pages-group" key={name}>
@@ -211,6 +316,16 @@ export function PagesView({ years, year, pages, loading, filter, setFilter, onYe
                   <button type="button" className="btn-ghost" onClick={() => onView(p.path)}>View history</button>
                 </div>
               ))}
+              {list.length > 80 && (
+                <div className="pages-more">
+                  {plural(list.length - 80, 'more page', 'more pages')} in {name}.{' '}
+                  {name !== activeSection ? (
+                    <button type="button" onClick={() => pickSection(name)}>Show only {name}</button>
+                  ) : (
+                    'Search above to narrow them down, or download the full list.'
+                  )}
+                </div>
+              )}
             </div>
           ))
         )}
