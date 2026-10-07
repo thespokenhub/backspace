@@ -36,7 +36,7 @@ export interface PagesResult {
 // Lookups go to our same-origin proxy first (api/cdx.ts on Vercel, vite.config.ts in
 // dev), then straight to the archive from the browser, before falling back to samples.
 const SOURCES = [
-  { base: '/api/cdx', timeout: 35000 },
+  { base: '/api/cdx', timeout: 55000 },
   { base: 'https://web.archive.org/cdx/search/cdx', timeout: 20000 },
 ];
 
@@ -112,14 +112,38 @@ export function sample(url: string): RawSnap[] {
   return out;
 }
 
+// Big sites have hundreds of thousands of captures, and one query over all of them
+// times out. Five-year slices are each quick and run in parallel.
+const FIRST_YEAR = 1996;
+const SLICE_YEARS = 5;
+
+function yearSlices(): [number, number][] {
+  const out: [number, number][] = [];
+  const last = new Date().getFullYear();
+  for (let y = FIRST_YEAR; y <= last; y += SLICE_YEARS) out.push([y, Math.min(last, y + SLICE_YEARS - 1)]);
+  return out;
+}
+
+async function fetchSlice(url: string, from: number, to: number): Promise<RawSnap[]> {
+  const q = `url=${encodeURIComponent(url)}&output=json&fl=timestamp,digest,length&filter=statuscode:200&collapse=timestamp:6&from=${from}&to=${to}`;
+  let rows: string[][] | null;
+  try {
+    rows = (await fetchJson(q)) as string[][] | null;
+  } catch {
+    await wait(1500);
+    rows = (await fetchJson(q)) as string[][] | null; // one retry, then give up
+  }
+  return (rows || []).slice(1).map(([ts, digest, length]) => ({ ts, digest, length: +length || 0 }));
+}
+
 export async function fetchSnapshots(url: string): Promise<SnapResult> {
   const hit = snapCache.get(url);
   if (hit) return hit;
-  const api = `url=${encodeURIComponent(url)}&output=json&fl=timestamp,digest,length&filter=statuscode:200&collapse=timestamp:6`;
   let res: SnapResult;
   try {
-    const rows = (await fetchJson(api)) as string[][] | null;
-    res = { source: 'live', snaps: decorate((rows || []).slice(1).map(([ts, digest, length]) => ({ ts, digest, length: +length || 0 }))) };
+    // All slices must succeed: a timeline with silent gaps would be misleading.
+    const slices = await Promise.all(yearSlices().map(([from, to]) => fetchSlice(url, from, to)));
+    res = { source: 'live', snaps: decorate(slices.flat()) };
     snapCache.set(url, res); // only cache real answers, so "Try again" can retry
   } catch {
     await wait(900);

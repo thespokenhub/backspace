@@ -9,7 +9,7 @@
 const UPSTREAMS = ['https://web.archive.org/cdx/search/cdx', 'https://web.archive.org/web/timemap/json'];
 const ALLOWED = new Set(['url', 'output', 'fl', 'filter', 'collapse', 'from', 'to', 'limit']);
 const UA = 'Backspace/1.0 (+https://github.com/thespokenhub/backspace)';
-const PER_TRY_MS = 14000;
+const PER_TRY_MS = 25000; // two endpoints x 25s stays inside the 60s maxDuration
 
 export async function GET(request: Request): Promise<Response> {
   const incoming = new URL(request.url).searchParams;

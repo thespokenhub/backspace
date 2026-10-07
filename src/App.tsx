@@ -192,7 +192,7 @@ export default function App({ startAt = 'newest', showLegend = true }: Props) {
         <div className="state state--loading" aria-live="polite">
           <span className="logo-key logo--big" aria-hidden="true">⌫</span>
           <div className="state-title">Looking for saved copies of {pendingUrl}</div>
-          <div className="state-sub">We're checking every copy saved since 1996. This takes a few seconds.</div>
+          <div className="state-sub">We're checking every copy saved since 1996. Big sites can take up to a minute.</div>
           <LoaderBar />
         </div>
       )}
