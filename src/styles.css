@@ -198,6 +198,10 @@ button { cursor: pointer; }
 .r-banner-sub { color: var(--text-3); font-size: 15px; margin-top: 6px; }
 .r-position { font: 500 13px var(--mono); color: var(--text-3); }
 
+.notice { margin: 0 24px 12px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; background: #fff4d6; border: 1px solid #ecd28a; border-radius: 10px; padding: 9px 14px; font-size: 14px; color: #5c4a14; }
+.notice button { border: 1px solid #5c4a14; background: #fff; color: #5c4a14; border-radius: 7px; padding: 5px 11px; font: 600 13px var(--sans); }
+.notice button:hover { background: #5c4a14; color: #fff; }
+
 .r-body { flex: 1; min-height: 0; padding: 0 24px; display: flex; flex-direction: column; }
 
 .frame-wrap { flex: 1; position: relative; min-height: 0; }
@@ -304,4 +308,5 @@ button { cursor: pointer; }
   .step { padding: 20px 16px; }
   .r-header { padding: 10px 16px; }
   .r-banner, .r-body, .scrubber { padding-left: 16px; padding-right: 16px; }
+  .notice { margin-left: 16px; margin-right: 16px; }
 }
