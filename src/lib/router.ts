@@ -4,7 +4,7 @@
 //   /apple.com                          newest copy of apple.com
 //   /apple.com/mac?date=2007-06-12      a page on a date
 //   /apple.com?view=compare&date=2009-03-01&vs=2026-09-01
-//   /apple.com?view=pages&year=2009
+//   /apple.com?view=pages&year=2009&month=3
 //   /apple.com?view=changes
 
 import { normalize, type Snap } from './backspace';
@@ -17,6 +17,8 @@ export interface SiteRoute {
   date?: string; // YYYYMMDD of copy A
   vs?: string; // YYYYMMDD of copy B (compare)
   year?: number; // All pages year
+  month?: number; // All pages month, 1-12
+  period?: string; // not serialized: land on the first copy in this YYYY or YYYYMM
   start?: StartAt; // not serialized: where to land when no date is given
 }
 
@@ -50,7 +52,9 @@ export function parseRoute(loc: { pathname: string; search: string }): Route {
   const q = new URLSearchParams(loc.search);
   const view = VIEWS.includes(q.get('view') as TabId) ? (q.get('view') as TabId) : 'page';
   const year = Number(q.get('year')) || undefined;
-  return { kind: 'site', url, view, date: toDay(q.get('date')), vs: toDay(q.get('vs')), year };
+  const m = Number(q.get('month'));
+  const month = year && m >= 1 && m <= 12 ? m : undefined;
+  return { kind: 'site', url, view, date: toDay(q.get('date')), vs: toDay(q.get('vs')), year, month };
 }
 
 export function routeToPath(r: Route): string {
@@ -61,6 +65,7 @@ export function routeToPath(r: Route): string {
   if (r.date && (r.view === 'page' || r.view === 'compare')) q.set('date', fromDay(r.date));
   if (r.vs && r.view === 'compare') q.set('vs', fromDay(r.vs));
   if (r.year && r.view === 'pages') q.set('year', String(r.year));
+  if (r.year && r.month && r.view === 'pages') q.set('month', String(r.month));
   const qs = q.toString();
   return `/${r.url}${qs ? `?${qs}` : ''}`;
 }
@@ -78,6 +83,13 @@ export function nearestIdx(snaps: Snap[], day: string): number {
     }
   });
   return best;
+}
+
+/** First copy saved in a YYYY or YYYYMM period, else the copy nearest to it. */
+export function periodIdx(snaps: Snap[], period: string): number {
+  const hit = snaps.findIndex((s) => s.ts.startsWith(period));
+  if (hit >= 0) return hit;
+  return nearestIdx(snaps, period.length === 4 ? `${period}0701` : `${period}15`);
 }
 
 export const dayOf = (s: Snap) => s.ts.slice(0, 8);

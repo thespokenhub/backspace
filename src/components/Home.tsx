@@ -2,12 +2,14 @@ import type { Ref } from 'react';
 import { EXAMPLES } from '../lib/backspace';
 import type { CaseId, TabId } from '../lib/cases';
 import { Footer } from './common';
-import { SearchForm } from './SearchForm';
+import { SearchForm, type When } from './SearchForm';
 
 interface Props {
   input: string;
   setInput: (v: string) => void;
   intent: TabId;
+  when: When;
+  setWhen: (w: When) => void;
   setIntent: (t: TabId) => void;
   onSubmit: () => void;
   onExample: (url: string) => void;
@@ -48,7 +50,7 @@ const FAQ = [
   ['Why are some dates missing?', "Pages aren't saved every day. Popular sites have copies almost weekly. Small sites might have one a year, or none."],
 ];
 
-export function Home({ input, setInput, intent, setIntent, onSubmit, onExample, onCase, error, heroInputRef, featuresRef, howRef }: Props) {
+export function Home({ input, setInput, intent, setIntent, when, setWhen, onSubmit, onExample, onCase, error, heroInputRef, featuresRef, howRef }: Props) {
   return (
     <div>
       <section className="hero">
@@ -63,7 +65,7 @@ export function Home({ input, setInput, intent, setIntent, onSubmit, onExample, 
               </button>
             ))}
           </div>
-          <SearchForm variant="hero" value={input} onChange={setInput} onSubmit={onSubmit} inputRef={heroInputRef} />
+          <SearchForm variant="hero" value={input} onChange={setInput} onSubmit={onSubmit} inputRef={heroInputRef} when={when} setWhen={setWhen} />
           {error && <div className="hero-error" role="alert">{error}</div>}
           <div className="examples">
             <span>Not sure? Try one:</span>

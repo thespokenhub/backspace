@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { ago, fmt, fmtShort, frameUrl, plural, type SitePage, type Snap } from '../lib/backspace';
+import { ago, fmt, fmtShort, frameUrl, MONTHS, MONTHS_SHORT, plural, type SitePage, type Snap } from '../lib/backspace';
 import { LoaderBar } from './common';
 
 // Tracks whether an iframe has finished loading its current src. State lives in the
@@ -151,6 +151,8 @@ export function CompareView({ url, snaps, idx, cmpIdx, mode, onPickA, onPickB, o
 interface PagesProps {
   years: number[];
   year: number | null;
+  month: number | null;
+  onMonth: (m: number | null) => void;
   pages: SitePage[];
   loading: boolean;
   filter: string;
@@ -180,7 +182,7 @@ function countBy<T>(items: T[], key: (t: T) => string | null) {
   return m;
 }
 
-export function PagesView({ years, year, pages, loading, filter, setFilter, onYear, onView, onExport }: PagesProps) {
+export function PagesView({ years, year, month, onMonth, pages, loading, filter, setFilter, onYear, onView, onExport }: PagesProps) {
   const [section, setSection] = useState<string | null>(null);
   const [sub, setSub] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
@@ -231,6 +233,10 @@ export function PagesView({ years, year, pages, loading, filter, setFilter, onYe
   // Keep the picked section visible even when it's past the fold.
   if (activeSection && !shown.some(([n]) => n === activeSection)) shown.push(sections.find(([n]) => n === activeSection)!);
 
+  const now = new Date();
+  const isFuture = (m: number) => year === now.getFullYear() && m > now.getMonth() + 1;
+  const when = month && year ? `${MONTHS[month - 1]} ${year}` : String(year ?? '');
+
   return (
     <div className="panel">
       <div className="pages-years">
@@ -238,6 +244,25 @@ export function PagesView({ years, year, pages, loading, filter, setFilter, onYe
         <div className="year-chips">
           {years.map((y) => (
             <button type="button" key={y} className={y === year ? 'year-chip on' : 'year-chip'} aria-pressed={y === year} onClick={() => onYear(y)}>{y}</button>
+          ))}
+        </div>
+      </div>
+      <div className="pages-months">
+        <span>Month</span>
+        <div className="year-chips">
+          <button type="button" className={month == null ? 'year-chip on' : 'year-chip'} aria-pressed={month == null} onClick={() => onMonth(null)}>Whole year</button>
+          {MONTHS_SHORT.map((label, i) => (
+            <button
+              type="button"
+              key={label}
+              className={month === i + 1 ? 'year-chip on' : 'year-chip'}
+              aria-pressed={month === i + 1}
+              aria-label={MONTHS[i]}
+              disabled={isFuture(i + 1)}
+              onClick={() => onMonth(month === i + 1 ? null : i + 1)}
+            >
+              {label}
+            </button>
           ))}
         </div>
       </div>
@@ -291,7 +316,7 @@ export function PagesView({ years, year, pages, loading, filter, setFilter, onYe
       <div className="pages-list">
         {loading ? (
           <div className="pages-msg">
-            <b>Finding every page saved in {year}</b>
+            <b>Finding every page saved in {when}</b>
             <LoaderBar size="md" />
           </div>
         ) : filtered.length === 0 ? (
@@ -302,7 +327,7 @@ export function PagesView({ years, year, pages, loading, filter, setFilter, onYe
                 <button type="button" className="clear-filters" onClick={clearAll}>Clear filters</button>
               </>
             ) : (
-              'No pages were saved that year. Pick another year.'
+              month ? `No pages were saved in ${when}. Try the whole year, or another month.` : 'No pages were saved that year. Pick another year.'
             )}
           </div>
         ) : (
