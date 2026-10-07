@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { fetchSnapshots, normalize, type Snap } from './lib/backspace';
+import { fetchSnapshots, normalize, type Snap, type SnapResult } from './lib/backspace';
 import { CASES, type CaseId, type StartAt, type TabId } from './lib/cases';
 import { LoaderBar } from './components/common';
 import { Home } from './components/Home';
@@ -21,6 +21,7 @@ interface Search {
   id: number;
   url: string;
   snaps: Snap[];
+  source: SnapResult['source'];
   tab: TabId;
   start: StartAt;
 }
@@ -62,7 +63,7 @@ export default function App({ startAt = 'newest', showLegend = true }: Props) {
         setView('empty');
         return;
       }
-      setSearch({ id, url, snaps: res.snaps, tab, start: start ?? startAt });
+      setSearch({ id, url, snaps: res.snaps, source: res.source, tab, start: start ?? startAt });
       setView('results');
     },
     [startAt],
@@ -173,11 +174,13 @@ export default function App({ startAt = 'newest', showLegend = true }: Props) {
           key={search.id}
           url={search.url}
           snaps={search.snaps}
+          source={search.source}
           initialTab={search.tab}
           startAt={search.start}
           showLegend={showLegend}
           onHome={goHome}
           onSearch={(raw, tab) => go(raw, tab)}
+          onRetry={(tab) => go(search.url, tab, search.start)}
         />
       )}
     </>

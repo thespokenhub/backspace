@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
-import { ago, downloadCsv, fetchPages, fmt, hostOf, normalize, plural, type SitePage, type Snap } from '../lib/backspace';
+import { ago, downloadCsv, fetchPages, fmt, hostOf, normalize, plural, type SitePage, type Snap, type SnapResult } from '../lib/backspace';
 import { TABS, type StartAt, type TabId } from '../lib/cases';
 import { Logo } from './common';
 import { Scrubber } from './Scrubber';
@@ -8,11 +8,13 @@ import { ChangesView, CompareView, PagesView, PageView } from './tabs';
 interface Props {
   url: string;
   snaps: Snap[];
+  source: SnapResult['source'];
   initialTab: TabId;
   startAt: StartAt;
   showLegend: boolean;
   onHome: () => void;
   onSearch: (raw: string, tab: TabId) => void;
+  onRetry: (tab: TabId) => void;
 }
 
 // Nearest copy in direction d that changed, stopping at either end.
@@ -29,7 +31,7 @@ function stepTarget(snaps: Snap[], idx: number, d: number, changesOnly: boolean)
   return i < 0 || i >= snaps.length ? -1 : i;
 }
 
-export function Results({ url, snaps, initialTab, startAt, showLegend, onHome, onSearch }: Props) {
+export function Results({ url, snaps, source, initialTab, startAt, showLegend, onHome, onSearch, onRetry }: Props) {
   const n = snaps.length;
   const [input, setInput] = useState(url);
   const [invalid, setInvalid] = useState(false);
@@ -44,6 +46,7 @@ export function Results({ url, snaps, initialTab, startAt, showLegend, onHome, o
   const [changesOnly, setChangesOnly] = useState(false);
   const [pagesYear, setPagesYear] = useState<number | null>(null);
   const [pages, setPages] = useState<SitePage[]>([]);
+  const [pagesSample, setPagesSample] = useState(false);
   const [pagesLoading, setPagesLoading] = useState(false);
   const [pageFilter, setPageFilter] = useState('');
 
@@ -58,9 +61,10 @@ export function Results({ url, snaps, initialTab, startAt, showLegend, onHome, o
       wantedYear.current = year;
       setPagesYear(year);
       setPagesLoading(true);
-      const list = await fetchPages(url, year);
+      const res = await fetchPages(url, year);
       if (wantedYear.current !== year) return; // a different year was picked meanwhile
-      setPages(list);
+      setPages(res.pages);
+      setPagesSample(res.source === 'sample');
       setPagesLoading(false);
     },
     [url],
@@ -97,10 +101,18 @@ export function Results({ url, snaps, initialTab, startAt, showLegend, onHome, o
         e.preventDefault();
         step(1);
       }
+      if (e.key === 'Home') {
+        e.preventDefault();
+        setIdx(0);
+      }
+      if (e.key === 'End') {
+        e.preventDefault();
+        setIdx(n - 1);
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [tab, step]);
+  }, [tab, step, n]);
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -178,6 +190,13 @@ export function Results({ url, snaps, initialTab, startAt, showLegend, onHome, o
         {tab === 'changes' && <div className="r-banner-title">{url} changed {plural(changeCount, 'time', 'times')}. Here's each one, newest first.</div>}
       </div>
 
+      {(source === 'sample' || (tab === 'pages' && pagesSample && !pagesLoading)) && (
+        <div className="notice" role="status">
+          <span>We couldn't load the real history of {host} just now, so you're seeing example {tab === 'pages' ? 'pages' : 'dates'}.</span>
+          <button type="button" onClick={() => onRetry(tab)}>Try again</button>
+        </div>
+      )}
+
       <div className="r-body">
         {tab === 'page' && <PageView url={url} cur={cur} />}
         {tab === 'compare' && (
@@ -235,6 +254,8 @@ export function Results({ url, snaps, initialTab, startAt, showLegend, onHome, o
           canOlder={stepTarget(snaps, idx, -1, changesOnly) >= 0}
           canNewer={stepTarget(snaps, idx, 1, changesOnly) >= 0}
           onStep={step}
+          onFirst={() => setIdx(0)}
+          onLatest={() => setIdx(n - 1)}
           onSelect={setIdx}
           showLegend={showLegend}
         />

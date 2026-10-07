@@ -28,14 +28,22 @@ export interface SitePage {
   ts: string;
 }
 
+export interface PagesResult {
+  source: 'live' | 'sample';
+  pages: SitePage[];
+}
+
+// Same-origin proxy (api/cdx.ts on Vercel, vite.config.ts in dev).
+const CDX = '/api/cdx';
+
 const snapCache = new Map<string, SnapResult>();
-const pageCache = new Map<string, SitePage[]>();
+const pageCache = new Map<string, PagesResult>();
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 async function fetchJson(api: string): Promise<unknown> {
   const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), 15000);
+  const t = setTimeout(() => ctrl.abort(), 30000);
   try {
     const r = await fetch(api, { signal: ctrl.signal });
     if (!r.ok) throw new Error('bad');
@@ -102,16 +110,16 @@ export function sample(url: string): RawSnap[] {
 export async function fetchSnapshots(url: string): Promise<SnapResult> {
   const hit = snapCache.get(url);
   if (hit) return hit;
-  const api = `https://web.archive.org/cdx/search/cdx?url=${encodeURIComponent(url)}&output=json&fl=timestamp,digest,length&filter=statuscode:200&collapse=timestamp:6`;
+  const api = `${CDX}?url=${encodeURIComponent(url)}&output=json&fl=timestamp,digest,length&filter=statuscode:200&collapse=timestamp:6`;
   let res: SnapResult;
   try {
     const rows = (await fetchJson(api)) as string[][] | null;
     res = { source: 'live', snaps: decorate((rows || []).slice(1).map(([ts, digest, length]) => ({ ts, digest, length: +length || 0 }))) };
+    snapCache.set(url, res); // only cache real answers, so "Try again" can retry
   } catch {
     await wait(900);
     res = { source: 'sample', snaps: decorate(sample(url)) };
   }
-  snapCache.set(url, res);
   return res;
 }
 
@@ -161,13 +169,14 @@ export function samplePages(host: string, year: number): SitePage[] {
   });
 }
 
-export async function fetchPages(url: string, year: number): Promise<SitePage[]> {
+export async function fetchPages(url: string, year: number): Promise<PagesResult> {
   const host = hostOf(url);
   const key = `${host}:${year}`;
   const hit = pageCache.get(key);
   if (hit) return hit;
-  const api = `https://web.archive.org/cdx/search/cdx?url=${encodeURIComponent(host)}/*&output=json&fl=original,timestamp&collapse=urlkey&filter=statuscode:200&filter=mimetype:text/html&from=${year}&to=${year}&limit=500`;
+  const api = `${CDX}?url=${encodeURIComponent(host)}/*&output=json&fl=original,timestamp&collapse=urlkey&filter=statuscode:200&filter=mimetype:text/html&from=${year}&to=${year}&limit=500`;
   let list: SitePage[];
+  let source: PagesResult['source'] = 'live';
   try {
     const rows = (await fetchJson(api)) as string[][] | null;
     const seen = new Map<string, SitePage>();
@@ -180,10 +189,12 @@ export async function fetchPages(url: string, year: number): Promise<SitePage[]>
   } catch {
     await wait(700);
     list = samplePages(host, year);
+    source = 'sample';
   }
   list.sort((a, b) => a.path.localeCompare(b.path));
-  pageCache.set(key, list);
-  return list;
+  const res = { source, pages: list };
+  if (source === 'live') pageCache.set(key, res);
+  return res;
 }
 
 export function downloadCsv(name: string, rows: (string | number)[][]) {

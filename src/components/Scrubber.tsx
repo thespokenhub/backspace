@@ -10,11 +10,13 @@ interface Props {
   canOlder: boolean;
   canNewer: boolean;
   onStep: (d: -1 | 1) => void;
+  onFirst: () => void;
+  onLatest: () => void;
   onSelect: (i: number) => void;
   showLegend: boolean;
 }
 
-export function Scrubber({ snaps, idx, cmpIdx, changesOnly, setChangesOnly, canOlder, canNewer, onStep, onSelect, showLegend }: Props) {
+export function Scrubber({ snaps, idx, cmpIdx, changesOnly, setChangesOnly, canOlder, canNewer, onStep, onFirst, onLatest, onSelect, showLegend }: Props) {
   const trackRef = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
   const [hover, setHover] = useState<number | null>(null);
@@ -57,8 +59,10 @@ export function Scrubber({ snaps, idx, cmpIdx, changesOnly, setChangesOnly, canO
   return (
     <div className="scrubber">
       <div className="scrub-controls">
+        <button type="button" className="btn-step" onClick={onFirst} disabled={idx === 0} title="Jump to the oldest saved copy (Home key)">⇤ First version</button>
         <button type="button" className="btn-step" onClick={() => onStep(-1)} disabled={!canOlder}>← Older</button>
         <button type="button" className="btn-step" onClick={() => onStep(1)} disabled={!canNewer}>Newer →</button>
+        <button type="button" className="btn-step" onClick={onLatest} disabled={idx === n - 1} title="Jump to the newest saved copy (End key)">Latest ⇥</button>
         <label className="skip-toggle">
           <input type="checkbox" checked={changesOnly} onChange={() => setChangesOnly(!changesOnly)} />
           Skip copies where nothing changed
@@ -120,7 +124,7 @@ export function Scrubber({ snaps, idx, cmpIdx, changesOnly, setChangesOnly, canO
         </div>
       </div>
       <div className="scrub-range">
-        {n ? `${n} saved copies, from ${snaps[0].year} to ${snaps[n - 1].year}` : ''}. Tip: use your ← → arrow keys.
+        {n ? `${n} saved copies, from ${snaps[0].year} to ${snaps[n - 1].year}` : ''}. Tip: ← → step through copies. Home and End jump to the first and latest.
       </div>
     </div>
   );
