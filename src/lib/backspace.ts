@@ -1,6 +1,7 @@
 // Snapshot lookup, sample fallbacks and date formatting.
 // Ported from the design bundle's backspace-data.js.
 
+export const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 export const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 export const EXAMPLES = ['apple.com', 'nytimes.com', 'spacejam.com', 'wikipedia.org'];
 
@@ -176,12 +177,12 @@ function pathOf(orig: string): string {
 
 const WORDS = ['news', 'spring', 'launch', 'guide', 'team', 'update', 'design', 'store', 'pricing', 'faq', 'history', 'tour', 'press', 'events', 'support', 'help', 'jobs', 'partners', 'stories', 'gallery', 'downloads', 'features', 'mobile', 'music', 'video', 'travel', 'sports', 'tech', 'world', 'science'];
 
-export function samplePages(host: string, year: number): SitePage[] {
-  const rnd = seeded(year, host);
+export function samplePages(host: string, year: number, month?: number): SitePage[] {
+  const rnd = seeded(year * 13 + (month ?? 0), host);
   const pick = () => WORDS[Math.floor(rnd() * WORDS.length)];
   const set = new Set(['/', '/about', '/contact', '/privacy']);
   const sections = ['products', 'blog', 'support', 'news', 'careers', 'press'];
-  const size = Math.min(140, 18 + (year - 1996) * 5);
+  const size = Math.max(6, Math.round(Math.min(140, 18 + (year - 1996) * 5) / (month ? 4 : 1)));
   let guard = 0;
   while (set.size < size && guard++ < 2000) {
     const sec = sections[Math.floor(rnd() * Math.min(sections.length, 2 + (year - 1996) / 5))];
@@ -192,18 +193,20 @@ export function samplePages(host: string, year: number): SitePage[] {
   const now = new Date();
   const cur = year === now.getFullYear();
   return [...set].map((path) => {
-    const m = 1 + Math.floor(rnd() * (cur ? now.getMonth() + 1 : 12));
+    const m = month ?? 1 + Math.floor(rnd() * (cur ? now.getMonth() + 1 : 12));
     const dd = 1 + Math.floor(rnd() * (cur && m === now.getMonth() + 1 ? Math.max(1, now.getDate() - 1) : 27));
     return { path, ts: `${year}${pad(m)}${pad(dd)}120000` };
   });
 }
 
-export async function fetchPages(url: string, year: number): Promise<PagesResult> {
+/** Pages saved in a year, or in one month of it when month (1-12) is given. */
+export async function fetchPages(url: string, year: number, month?: number): Promise<PagesResult> {
   const host = hostOf(url);
-  const key = `${host}:${year}`;
+  const span = month ? `${year}${pad(month)}` : String(year);
+  const key = `${host}:${span}`;
   const hit = pageCache.get(key);
   if (hit) return hit;
-  const api = `url=${encodeURIComponent(host)}/*&output=json&fl=original,timestamp&collapse=urlkey&filter=statuscode:200&filter=mimetype:text/html&from=${year}&to=${year}&limit=500`;
+  const api = `url=${encodeURIComponent(host)}/*&output=json&fl=original,timestamp&collapse=urlkey&filter=statuscode:200&filter=mimetype:text/html&from=${span}&to=${span}&limit=500`;
   let list: SitePage[];
   let source: PagesResult['source'] = 'live';
   try {
@@ -217,7 +220,7 @@ export async function fetchPages(url: string, year: number): Promise<PagesResult
     if (!list.length) throw new Error('empty');
   } catch {
     await wait(700);
-    list = samplePages(host, year);
+    list = samplePages(host, year, month);
     source = 'sample';
   }
   list.sort((a, b) => a.path.localeCompare(b.path));

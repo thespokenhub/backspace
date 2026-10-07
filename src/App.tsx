@@ -8,6 +8,7 @@ import { Nav } from './components/Nav';
 import { Results } from './components/Results';
 import { SaveNow } from './components/SaveNow';
 import { UseCasePage } from './components/UseCasePage';
+import type { When } from './components/SearchForm';
 
 type View = 'home' | 'usecase' | 'loading' | 'empty' | 'results';
 type ScrollTarget = 'top' | 'features' | 'how' | 'try';
@@ -31,6 +32,9 @@ interface Search {
 const BAD_ADDRESS = "That doesn't look like a web address. Try something like apple.com";
 const TITLE = 'Backspace: see any website the way it used to look';
 
+// The home page picker as a YYYY or YYYYMM period.
+const periodOf = (w: When) => (w.year ? `${w.year}${w.month ? String(w.month).padStart(2, '0') : ''}` : undefined);
+
 const here = () => window.location.pathname + window.location.search;
 
 export default function App({ startAt = 'newest', showLegend = true }: Props) {
@@ -39,6 +43,7 @@ export default function App({ startAt = 'newest', showLegend = true }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [input, setInput] = useState('');
   const [intent, setIntent] = useState<TabId>('page');
+  const [when, setWhen] = useState<When>({ year: null, month: null });
   const [error, setError] = useState('');
   const [pendingUrl, setPendingUrl] = useState('');
   const [search, setSearch] = useState<Search | null>(null);
@@ -107,13 +112,13 @@ export default function App({ startAt = 'newest', showLegend = true }: Props) {
     return () => window.removeEventListener('popstate', onPop);
   }, [applyRoute]);
 
-  const go = (raw: string, view: TabId = 'page', start?: StartAt) => {
+  const go = (raw: string, view: TabId = 'page', start?: StartAt, period?: string) => {
     const url = normalize(raw);
     if (!url) {
       setError(BAD_ADDRESS);
       return;
     }
-    navigate({ kind: 'site', url, view, start });
+    navigate({ kind: 'site', url, view, start, period });
   };
 
   const goHome = (target: ScrollTarget = 'top') => {
@@ -166,8 +171,10 @@ export default function App({ startAt = 'newest', showLegend = true }: Props) {
           }}
           intent={intent}
           setIntent={setIntent}
-          onSubmit={() => go(input, intent)}
-          onExample={(x) => go(x, intent)}
+          when={when}
+          setWhen={setWhen}
+          onSubmit={() => go(input, intent, undefined, periodOf(when))}
+          onExample={(x) => go(x, intent, undefined, periodOf(when))}
           onCase={openCase}
           error={error}
           heroInputRef={heroInputRef}

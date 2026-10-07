@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
-import { ago, downloadCsv, fetchPages, fmt, hostOf, normalize, plural, type SitePage, type Snap, type SnapResult } from '../lib/backspace';
+import { ago, downloadCsv, fetchPages, fmt, hostOf, MONTHS, normalize, plural, type SitePage, type Snap, type SnapResult } from '../lib/backspace';
 import { TABS, type StartAt, type TabId } from '../lib/cases';
-import { dayOf, nearestIdx, type SiteRoute } from '../lib/router';
+import { dayOf, nearestIdx, periodIdx, type SiteRoute } from '../lib/router';
 import { Logo } from './common';
 import { SaveNow } from './SaveNow';
 import { ShareButton } from './ShareButton';
@@ -44,6 +44,7 @@ export function Results({ url, snaps, source, initial, startAt, showLegend, onHo
   const [tab, setTabState] = useState<TabId>(initial.view);
   const [idx, setIdx] = useState(() => {
     if (initial.date) return nearestIdx(snaps, initial.date);
+    if (initial.period) return periodIdx(snaps, initial.period);
     const start = startAt === 'oldest' ? 0 : n - 1;
     // Compare opens on the last change before the newest copy, so A and B differ.
     return initial.view === 'compare' && start === n - 1 ? findChange(snaps, start, -1) : start;
@@ -53,6 +54,7 @@ export function Results({ url, snaps, source, initial, startAt, showLegend, onHo
   const [cmpMode, setCmpMode] = useState<'side' | 'swipe'>('side');
   const [changesOnly, setChangesOnly] = useState(false);
   const [pagesYear, setPagesYear] = useState<number | null>(null);
+  const [pagesMonth, setPagesMonth] = useState<number | null>(null);
   const [pages, setPages] = useState<SitePage[]>([]);
   const [pagesSample, setPagesSample] = useState(false);
   const [pagesLoading, setPagesLoading] = useState(false);
@@ -63,14 +65,16 @@ export function Results({ url, snaps, source, initial, startAt, showLegend, onHo
   const cmp = snaps[cmpI];
   const host = hostOf(url);
 
-  const wantedYear = useRef<number | null>(null);
+  const wanted = useRef('');
   const loadPages = useCallback(
-    async (year: number) => {
-      wantedYear.current = year;
+    async (year: number, month: number | null) => {
+      const key = `${year}-${month}`;
+      wanted.current = key;
       setPagesYear(year);
+      setPagesMonth(month);
       setPagesLoading(true);
-      const res = await fetchPages(url, year);
-      if (wantedYear.current !== year) return; // a different year was picked meanwhile
+      const res = await fetchPages(url, year, month ?? undefined);
+      if (wanted.current !== key) return; // a different year or month was picked meanwhile
       setPages(res.pages);
       setPagesSample(res.source === 'sample');
       setPagesLoading(false);
@@ -83,23 +87,34 @@ export function Results({ url, snaps, source, initial, startAt, showLegend, onHo
     setTabState(t);
   };
 
-  // All pages opens on the year from the link, else the year of the copy you were looking at.
-  const linkYear = useRef(initial.year);
+  // All pages opens on the year (and month) from the link or the home page picker,
+  // else the year of the copy you were looking at.
+  const linkPeriod = useRef(
+    initial.year
+      ? { year: initial.year, month: initial.month ?? null }
+      : initial.period && initial.view === 'pages'
+        ? { year: +initial.period.slice(0, 4), month: initial.period.length > 4 ? +initial.period.slice(4, 6) : null }
+        : null,
+  );
   useEffect(() => {
     if (tab !== 'pages' || pagesYear != null) return;
-    loadPages(linkYear.current && yearList.includes(linkYear.current) ? linkYear.current : cur.year);
-    linkYear.current = undefined;
+    const link = linkPeriod.current;
+    linkPeriod.current = null;
+    if (link && yearList.includes(link.year)) loadPages(link.year, link.month);
+    else loadPages(cur.year, null);
   }, [tab, pagesYear, cur.year, loadPages, yearList]);
+
+  const pagesWhen = pagesMonth && pagesYear ? `${MONTHS[pagesMonth - 1]} ${pagesYear}` : String(pagesYear ?? cur.year);
 
   // Keep the address bar in step, so any screen can be shared or bookmarked.
   useEffect(() => {
-    onRouteChange({ kind: 'site', url, view: tab, date: dayOf(cur), vs: tab === 'compare' ? dayOf(cmp) : undefined, year: pagesYear ?? undefined });
+    onRouteChange({ kind: 'site', url, view: tab, date: dayOf(cur), vs: tab === 'compare' ? dayOf(cmp) : undefined, year: pagesYear ?? undefined, month: pagesMonth ?? undefined });
     document.title =
       tab === 'page' ? `${url} on ${fmt(cur.ts)} · Backspace`
       : tab === 'compare' ? `${url}: ${fmt(cur.ts)} vs ${fmt(cmp.ts)} · Backspace`
-      : tab === 'pages' ? `Every page on ${host}${pagesYear ? ` in ${pagesYear}` : ''} · Backspace`
+      : tab === 'pages' ? `Every page on ${host} in ${pagesWhen} · Backspace`
       : `Every change to ${url} · Backspace`;
-  }, [url, host, tab, cur, cmp, pagesYear, onRouteChange]);
+  }, [url, host, tab, cur, cmp, pagesYear, pagesMonth, pagesWhen, onRouteChange]);
 
   // First visit: walk through the screen once.
   useEffect(() => {
@@ -235,7 +250,7 @@ export function Results({ url, snaps, source, initial, startAt, showLegend, onHo
             </div>
           </>
         )}
-        {tab === 'pages' && <div className="r-banner-title">These are the pages on {host} that were saved in {pagesYear ?? cur.year}.</div>}
+        {tab === 'pages' && <div className="r-banner-title">These are the pages on {host} that were saved in {pagesWhen}.</div>}
         {tab === 'changes' && <div className="r-banner-title">{url} changed {plural(changeCount, 'time', 'times')}. Here's each one, newest first.</div>}
       </div>
 
@@ -267,13 +282,15 @@ export function Results({ url, snaps, source, initial, startAt, showLegend, onHo
           <PagesView
             years={yearList}
             year={pagesYear}
+            month={pagesMonth}
+            onMonth={(m) => pagesYear && loadPages(pagesYear, m)}
             pages={pages}
             loading={pagesLoading}
             filter={pageFilter}
             setFilter={setPageFilter}
-            onYear={loadPages}
+            onYear={(y) => loadPages(y, pagesMonth)}
             onView={(path) => onSearch(host + (path === '/' ? '' : path), 'page')}
-            onExport={(rows) => downloadCsv(`${host}-pages-${pagesYear}.csv`, [['url', 'first saved'], ...rows.map((p) => [host + p.path, fmt(p.ts)])])}
+            onExport={(rows) => downloadCsv(`${host}-pages-${pagesYear}${pagesMonth ? `-${String(pagesMonth).padStart(2, '0')}` : ''}.csv`, [['url', 'first saved'], ...rows.map((p) => [host + p.path, fmt(p.ts)])])}
           />
         )}
         {tab === 'changes' && (

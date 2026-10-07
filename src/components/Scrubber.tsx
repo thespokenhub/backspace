@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { fmtShort, frameUrl, type Snap } from '../lib/backspace';
+import { fmtShort, frameUrl, MONTHS, MONTHS_SHORT, type Snap } from '../lib/backspace';
 
 interface Props {
   url: string;
@@ -93,6 +93,16 @@ export function Scrubber({ url, snaps, idx, cmpIdx, changesOnly, setChangesOnly,
     return [...map.entries()];
   }, [snaps, changesOnly]);
 
+  // First copy of each month in the year you're looking at; null when none was saved.
+  const curYear = snaps[idx]?.year;
+  const monthJumps = useMemo(() => {
+    const out: (number | null)[] = Array(12).fill(null);
+    snaps.forEach((s) => {
+      if (s.year === curYear && out[s.month - 1] == null) out[s.month - 1] = s.i;
+    });
+    return out;
+  }, [snaps, curYear]);
+
   const barColor = (sn: Snap, i: number) => {
     if (i === idx) return 'var(--accent)';
     if (cmpIdx != null && i === cmpIdx) return 'var(--blue)';
@@ -138,6 +148,26 @@ export function Scrubber({ url, snaps, idx, cmpIdx, changesOnly, setChangesOnly,
             {year}
           </button>
         ))}
+      </div>
+      <div className="year-jumps month-jumps">
+        <span>In {curYear}</span>
+        {MONTHS_SHORT.map((label, m) => {
+          const i = monthJumps[m];
+          const on = cur?.month === m + 1;
+          return (
+            <button
+              type="button"
+              key={label}
+              className={on ? 'on' : ''}
+              aria-pressed={on}
+              disabled={i == null}
+              title={i == null ? `Nothing saved in ${MONTHS[m]} ${curYear}` : `First copy from ${MONTHS[m]} ${curYear}`}
+              onClick={() => i != null && onSelect(i)}
+            >
+              {label}
+            </button>
+          );
+        })}
       </div>
       <div className="scrub-track-wrap" data-tour="timeline">
         {hover != null && show && (

@@ -29,7 +29,7 @@ const steps = (compare: boolean): Step[] => [
     ? { sel: '[data-tour="banner"]', title: 'Two dates, side by side', text: 'Orange is copy A, blue is copy B. Pick a date for each side, or swipe between them.' }
     : { sel: '[data-tour="banner"]', title: "This tells you what you're looking at", text: 'The site, and the exact day this copy was saved. It updates as you move through time.' },
   { sel: '[data-tour="timeline"]', title: 'Drag to travel through time', text: 'Each bar is one saved copy. Tall bars are days the page changed. Hover for a preview, let go to open it.' },
-  { sel: '[data-tour="years"]', title: 'Or jump straight to a year', text: 'First version takes you to the oldest copy. Years take you to the first copy saved that year.' },
+  { sel: '[data-tour="years"]', title: 'Or jump straight to a year', text: 'First version takes you to the oldest copy. Years and months take you to the first copy saved in them.' },
   { sel: '[data-tour="tabs"]', title: 'Four ways to look', text: 'Page shows one day. Compare puts two dates side by side. All pages lists every URL. Changes lists every date it changed.' },
   { sel: '[data-tour="share"]', title: 'Share exactly this view', text: "The link always points to the date and view you're on. Paste it anywhere." },
 ];
