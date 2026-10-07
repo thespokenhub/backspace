@@ -1,12 +1,14 @@
 import type { Ref } from 'react';
 import { EXAMPLES } from '../lib/backspace';
-import type { CaseId } from '../lib/cases';
+import type { CaseId, TabId } from '../lib/cases';
 import { Footer } from './common';
 import { SearchForm } from './SearchForm';
 
 interface Props {
   input: string;
   setInput: (v: string) => void;
+  intent: TabId;
+  setIntent: (t: TabId) => void;
   onSubmit: () => void;
   onExample: (url: string) => void;
   onCase: (id: CaseId) => void;
@@ -18,6 +20,14 @@ interface Props {
 
 // Tall = page changed, short = looked the same, here = selected copy.
 const ART_BARS = ['tall', '', '', 'tall', '', 'tall', '', '', 'here', '', 'tall', '', '', 'tall'];
+
+// What a first-time visitor came to do, mapped to the view that does it.
+const INTENTS: [TabId, string][] = [
+  ['page', 'See an old version'],
+  ['compare', 'Compare two dates'],
+  ['changes', 'Find what changed'],
+  ['pages', 'List every old URL'],
+];
 
 const STEPS = [
   ['01', 'Type an address', 'Any site. Your own, a rival, a blog.'],
@@ -38,13 +48,21 @@ const FAQ = [
   ['Why are some dates missing?', "Pages aren't saved every day. Popular sites have copies almost weekly. Small sites might have one a year, or none."],
 ];
 
-export function Home({ input, setInput, onSubmit, onExample, onCase, error, heroInputRef, featuresRef, howRef }: Props) {
+export function Home({ input, setInput, intent, setIntent, onSubmit, onExample, onCase, error, heroInputRef, featuresRef, howRef }: Props) {
   return (
     <div>
       <section className="hero">
         <div className="hero-inner">
           <h1>See any website the way it used to look.</h1>
           <p className="hero-sub">Type a web address. Drag back through the years. See the page, every URL on the site and every change, on any date since 1996.</p>
+          <div className="intents" role="radiogroup" aria-label="What do you want to do?">
+            <span>I want to</span>
+            {INTENTS.map(([id, label]) => (
+              <button type="button" role="radio" aria-checked={intent === id} key={id} className={intent === id ? 'on' : ''} onClick={() => setIntent(id)}>
+                {label}
+              </button>
+            ))}
+          </div>
           <SearchForm variant="hero" value={input} onChange={setInput} onSubmit={onSubmit} inputRef={heroInputRef} />
           {error && <div className="hero-error" role="alert">{error}</div>}
           <div className="examples">

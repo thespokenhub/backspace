@@ -1,7 +1,8 @@
-import { useMemo, useRef, useState } from 'react';
-import { fmtShort, type Snap } from '../lib/backspace';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { fmtShort, frameUrl, type Snap } from '../lib/backspace';
 
 interface Props {
+  url: string;
   snaps: Snap[];
   idx: number;
   cmpIdx: number | null; // set when the Compare tab is showing copy B
@@ -16,11 +17,45 @@ interface Props {
   showLegend: boolean;
 }
 
-export function Scrubber({ snaps, idx, cmpIdx, changesOnly, setChangesOnly, canOlder, canNewer, onStep, onFirst, onLatest, onSelect, showLegend }: Props) {
+// The preview renders the real page at desktop size, shrunk into a small card.
+const PREVIEW_W = 240;
+const PREVIEW_H = 150;
+const PAGE_W = 1280;
+const PREVIEW_DELAY = 250; // wait for the pointer to settle before loading a page
+
+function Preview({ url, snap }: { url: string; snap: Snap }) {
+  const [loaded, setLoaded] = useState(false);
+  const scale = PREVIEW_W / PAGE_W;
+  return (
+    <div className="scrub-preview" style={{ width: PREVIEW_W, height: PREVIEW_H }}>
+      <iframe
+        src={frameUrl(url, snap.ts)}
+        title={`Preview of ${fmtShort(snap.ts)}`}
+        tabIndex={-1}
+        onLoad={() => setLoaded(true)}
+        style={{ width: PAGE_W, height: PREVIEW_H / scale, transform: `scale(${scale})` }}
+      />
+      {!loaded && <div className="scrub-preview-wait">Loading preview…</div>}
+    </div>
+  );
+}
+
+export function Scrubber({ url, snaps, idx, cmpIdx, changesOnly, setChangesOnly, canOlder, canNewer, onStep, onFirst, onLatest, onSelect, showLegend }: Props) {
   const trackRef = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
   const [hover, setHover] = useState<number | null>(null);
+  const [previewIdx, setPreviewIdx] = useState<number | null>(null);
   const n = snaps.length;
+
+  // Only load a preview once the pointer rests on a bar for a moment.
+  useEffect(() => {
+    if (hover == null) {
+      setPreviewIdx(null);
+      return;
+    }
+    const t = setTimeout(() => setPreviewIdx(hover), PREVIEW_DELAY);
+    return () => clearTimeout(t);
+  }, [hover]);
 
   const idxFromX = (x: number) => {
     const el = trackRef.current;
@@ -44,6 +79,20 @@ export function Scrubber({ snaps, idx, cmpIdx, changesOnly, setChangesOnly, canO
     return out;
   }, [snaps, n]);
 
+  // First copy of each year, or its first change when skipping unchanged copies.
+  const yearJumps = useMemo(() => {
+    const map = new Map<number, number>();
+    snaps.forEach((s) => {
+      if (!map.has(s.year)) map.set(s.year, s.i);
+    });
+    if (changesOnly) {
+      const firstChange = new Map<number, number>();
+      snaps.forEach((s) => s.changed && !firstChange.has(s.year) && firstChange.set(s.year, s.i));
+      firstChange.forEach((i, y) => map.set(y, i));
+    }
+    return [...map.entries()];
+  }, [snaps, changesOnly]);
+
   const barColor = (sn: Snap, i: number) => {
     if (i === idx) return 'var(--accent)';
     if (cmpIdx != null && i === cmpIdx) return 'var(--blue)';
@@ -55,6 +104,11 @@ export function Scrubber({ snaps, idx, cmpIdx, changesOnly, setChangesOnly, canO
   const showI = hover ?? idx;
   const show = snaps[showI];
   const cur = snaps[idx];
+
+  // Keep the tooltip card inside the track.
+  const trackW = trackRef.current?.clientWidth ?? 0;
+  const half = (previewIdx != null ? PREVIEW_W : 120) / 2 + 8;
+  const tipX = Math.max(half, Math.min(trackW - half, ((showI + 0.5) / Math.max(n, 1)) * trackW));
 
   return (
     <div className="scrubber">
@@ -77,10 +131,19 @@ export function Scrubber({ snaps, idx, cmpIdx, changesOnly, setChangesOnly, canO
           </div>
         )}
       </div>
-      <div className="scrub-track-wrap">
+      <div className="year-jumps" data-tour="years">
+        <span>Jump to</span>
+        {yearJumps.map(([year, i]) => (
+          <button type="button" key={year} className={cur?.year === year ? 'on' : ''} aria-pressed={cur?.year === year} onClick={() => onSelect(i)}>
+            {year}
+          </button>
+        ))}
+      </div>
+      <div className="scrub-track-wrap" data-tour="timeline">
         {hover != null && show && (
-          <div className="scrub-tip" style={{ left: `${((showI + 0.5) / Math.max(n, 1)) * 100}%` }}>
-            {fmtShort(show.ts)}{show.changed ? ' · changed' : ''}
+          <div className="scrub-tip" style={{ left: tipX }}>
+            {previewIdx === hover && <Preview key={show.ts} url={url} snap={show} />}
+            <div className="scrub-tip-date">{fmtShort(show.ts)}{show.changed ? ' · changed' : ''}</div>
           </div>
         )}
         <div
@@ -106,6 +169,7 @@ export function Scrubber({ snaps, idx, cmpIdx, changesOnly, setChangesOnly, canO
             if (!dragging.current) return;
             dragging.current = false;
             onSelect(idxFromX(e.clientX));
+            if (e.pointerType !== 'mouse') setHover(null);
           }}
           onPointerCancel={() => {
             dragging.current = false;
