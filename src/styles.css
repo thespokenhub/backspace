@@ -71,7 +71,7 @@ button { cursor: pointer; }
 .hero { min-height: calc(100vh - 62px); display: flex; flex-direction: column; }
 .hero-inner { flex: 1; display: flex; flex-direction: column; justify-content: center; width: 100%; max-width: 840px; margin: 0 auto; padding: 56px 32px 40px; }
 .hero h1 { font-size: clamp(44px, 7.4vw, 92px); letter-spacing: -0.045em; line-height: 0.94; font-weight: 600; margin: 0; text-wrap: balance; }
-.hero-sub { font-size: 20px; line-height: 1.45; color: var(--text-2); margin: 24px 0 28px; max-width: 580px; text-wrap: pretty; }
+.hero-sub { font-size: 20px; line-height: 1.45; color: var(--text-2); margin: 24px 0 36px; max-width: 580px; text-wrap: pretty; }
 .hero-form { display: flex; gap: 8px; flex-wrap: wrap; background: #fff; border: 1.5px solid var(--ink); border-radius: 14px; padding: 8px; box-shadow: 0 6px 0 var(--ink); }
 .hero-form input { flex: 1; min-width: 200px; border: 0; outline: none; font: 500 20px var(--sans); padding: 12px 14px; background: transparent; color: var(--ink); }
 .when { display: flex; align-items: stretch; border-left: 1px solid var(--line); }
@@ -182,11 +182,6 @@ button { cursor: pointer; }
 .empty-sub { color: var(--text-2); max-width: 480px; line-height: 1.5; }
 .state .btn-ink { margin-top: 12px; }
 
-.intents { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
-.intents > span { font-size: 14px; color: var(--text-3); margin-right: 4px; }
-.intents button { border: 1px solid #d3cfc4; background: transparent; border-radius: 999px; padding: 7px 13px; font: 500 14px var(--sans); color: var(--text-2); }
-.intents button:hover { border-color: var(--ink); color: var(--ink); }
-.intents button.on { background: var(--ink); border-color: var(--ink); color: #fff; }
 
 .empty-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; align-items: center; margin-top: 12px; }
 .empty-actions .btn-ink { margin-top: 0; }
