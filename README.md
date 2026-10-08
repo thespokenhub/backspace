@@ -14,7 +14,7 @@ npm run build    # type-check and production build into dist/
 
 ## What's in it
 
-- **Home**: hero search with an "I want to…" picker that opens the right view, three-step explainer, feature cards, use case cards, short Q&A and a closing search box.
+- **Home**: hero search with an optional year and month to land on, three-step explainer, feature cards, use case cards, short Q&A and a closing search box.
 - **Use case pages** for copywriters, SEO specialists, developers and anyone curious, each with a one-click example.
 - **Results workspace** with four tabs:
   - **Page**: one saved copy with a draggable timeline (tall bars mark changes, hovering shows a live preview), First version / Latest buttons, year jump buttons, ← → / Backspace / Home / End keys, and "Skip copies where nothing changed".

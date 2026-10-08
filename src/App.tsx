@@ -42,7 +42,6 @@ export default function App({ startAt = 'newest', showLegend = true }: Props) {
   const [caseId, setCaseId] = useState<CaseId>('copy');
   const [menuOpen, setMenuOpen] = useState(false);
   const [input, setInput] = useState('');
-  const [intent, setIntent] = useState<TabId>('page');
   const [when, setWhen] = useState<When>({ year: null, month: null });
   const [error, setError] = useState('');
   const [pendingUrl, setPendingUrl] = useState('');
@@ -169,12 +168,10 @@ export default function App({ startAt = 'newest', showLegend = true }: Props) {
             setInput(v);
             setError('');
           }}
-          intent={intent}
-          setIntent={setIntent}
           when={when}
           setWhen={setWhen}
-          onSubmit={() => go(input, intent, undefined, periodOf(when))}
-          onExample={(x) => go(x, intent, undefined, periodOf(when))}
+          onSubmit={() => go(input, 'page', undefined, periodOf(when))}
+          onExample={(x) => go(x, 'page', undefined, periodOf(when))}
           onCase={openCase}
           error={error}
           heroInputRef={heroInputRef}
